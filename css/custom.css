@@ -1,0 +1,171 @@
+/* 页面整体背景 */
+body {
+    background: #f5f7fa;
+}
+
+/* 首页文章卡片 */
+#recent-posts > .recent-post-item {
+    background: rgba(255,255,255,0.35);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+
+/* 鼠标悬浮 */
+#recent-posts > .recent-post-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* 侧边栏卡片 */
+.card-widget {
+    background: rgba(255,255,255,0.5) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* 顶栏透明 */
+#page-header.nav-fixed #nav {
+    background: rgba(255,255,255,0.08) !important;
+    backdrop-filter: blur(6px);
+}
+
+/* 页面内容区域 */
+.layout > div:first-child:not(.recent-posts) {
+    background: rgba(255,255,255,0.5);
+    backdrop-filter: blur(16px);
+    border-radius: 24px;
+}
+
+/* 圆角统一 */
+.card-widget,
+.recent-post-item {
+    overflow: hidden;
+}
+
+/* 文章标题 */
+#recent-posts .recent-post-item .post-title {
+    font-weight: 700;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255,182,193,0.7);
+    border-radius: 20px;
+}
+
+/* 科技感主题变量 */
+:root {
+  --tech-blue: #65b6ff;
+  --tech-purple: #b388ff;
+  --tech-pink: #ffb6d5;
+}
+
+/* 现代化导航栏 */
+#nav {
+  border-bottom: 1px solid rgba(255,255,255,0.18);
+}
+
+#nav .menus_items .menus_item a {
+  transition: all 0.25s ease;
+}
+
+#nav .menus_items .menus_item a:hover {
+  color: #fff !important;
+  text-shadow: 0 0 10px var(--tech-blue), 0 0 18px var(--tech-purple);
+}
+
+/* 卡片科技感发光 */
+#recent-posts > .recent-post-item,
+.card-widget,
+.layout > div:first-child:not(.recent-posts) {
+  box-shadow: 0 8px 30px rgba(101, 182, 255, 0.12);
+  border: 1px solid rgba(101, 182, 255, 0.18);
+}
+
+/* 卡片悬浮 */
+#recent-posts > .recent-post-item:hover,
+.card-widget:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 35px rgba(101, 182, 255, 0.22),
+    0 0 18px rgba(179, 136, 255, 0.18);
+}
+
+/* 文章标题悬浮发光 */
+#recent-posts .recent-post-item .post-title:hover,
+.article-title:hover {
+  color: var(--tech-blue) !important;
+  text-shadow: 0 0 10px rgba(101, 182, 255, 0.45);
+}
+
+/* 页面主体淡科技背景 */
+#body-wrap {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(101,182,255,0.10), transparent 28%),
+    radial-gradient(circle at 85% 70%, rgba(179,136,255,0.10), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(246,249,255,0.96));
+}
+
+/* 图片头像发光边框 */
+.avatar-img img {
+  border: 3px solid rgba(101,182,255,0.45);
+  box-shadow:
+    0 0 16px rgba(101,182,255,0.45),
+    0 0 28px rgba(179,136,255,0.25);
+}
+
+/* 页面淡入 */
+#content-inner {
+  animation: fadeUp 0.7s ease both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 隐藏底部“框架 Hexo | 主题 Butterfly” */
+span.framework-info {
+  display: none !important;
+}
+
+/* 自定义内容标签 */
+.my-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.my-tags span {
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.55);
+  border: 1px solid rgba(101,182,255,0.18);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 14px rgba(101,182,255,0.08);
+  transition: all 0.25s ease;
+  cursor: default;
+}
+
+.my-tags span:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 22px rgba(101,182,255,0.22),
+    0 0 12px rgba(179,136,255,0.18);
+}
