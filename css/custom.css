@@ -729,3 +729,313 @@ me-hero-card,
 [data-theme="dark"] .home-section-title {
   color: #f2f7ff;
 }
+
+/* AI按钮 */
+#ai-assistant-btn {
+  position: fixed;
+  right: 28px;
+  bottom: 120px;
+  z-index: 99999;
+
+  width: 58px;
+  height: 58px;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--tech-blue),
+      var(--tech-purple)
+    );
+
+  color: white;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 30px rgba(101,182,255,0.35),
+    0 0 18px rgba(179,136,255,0.25);
+
+  transition: all 0.25s ease;
+}
+
+#ai-assistant-btn:hover {
+  transform:
+    translateY(-4px)
+    scale(1.05);
+}
+
+/* AI聊天面板 */
+#ai-assistant-panel {
+
+  position: fixed;
+
+  right: 28px;
+  bottom: 190px;
+
+  width: 360px;
+  height: 520px;
+
+  z-index: 99999;
+
+  border-radius: 24px;
+
+  overflow: hidden;
+
+  background:
+    rgba(255,255,255,0.82);
+
+  backdrop-filter: blur(18px);
+
+  border:
+    1px solid rgba(101,182,255,0.22);
+
+  box-shadow:
+    0 18px 40px rgba(101,182,255,0.22),
+    0 0 22px rgba(179,136,255,0.18);
+
+  display: flex;
+  flex-direction: column;
+
+  opacity: 0;
+
+  transform:
+    translateY(18px)
+    scale(0.96);
+
+  pointer-events: none;
+
+  transition: all 0.25s ease;
+}
+
+#ai-assistant-panel.show {
+
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1);
+
+  pointer-events: auto;
+}
+
+/* 顶栏 */
+.ai-panel-header {
+
+  padding: 14px 16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(101,182,255,0.18),
+      rgba(179,136,255,0.18)
+    );
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-weight: 700;
+}
+
+#ai-panel-close {
+
+  border: none;
+
+  background: transparent;
+
+  font-size: 24px;
+
+  cursor: pointer;
+}
+
+/* 消息区域 */
+#ai-panel-messages {
+
+  flex: 1;
+
+  padding: 16px;
+
+  overflow-y: auto;
+}
+
+/* 消息气泡 */
+.ai-msg {
+
+  max-width: 82%;
+
+  padding: 10px 14px;
+
+  margin-bottom: 14px;
+
+  border-radius: 16px;
+
+  line-height: 1.7;
+
+  white-space: pre-wrap;
+
+  font-size: 14px;
+}
+
+/* AI消息 */
+.ai-msg-bot {
+
+  background:
+    rgba(101,182,255,0.12);
+
+  border:
+    1px solid rgba(101,182,255,0.18);
+
+  color: #243244;
+}
+
+/* 用户消息 */
+.ai-msg-user {
+
+  margin-left: auto;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--tech-blue),
+      var(--tech-purple)
+    );
+
+  color: white;
+}
+
+/* 输入区域 */
+.ai-panel-input-wrap {
+
+  display: flex;
+
+  gap: 8px;
+
+  padding: 12px;
+
+  background:
+    rgba(255,255,255,0.55);
+}
+
+#ai-panel-input {
+
+  flex: 1;
+
+  border-radius: 999px;
+
+  border:
+    1px solid rgba(101,182,255,0.22);
+
+  padding: 10px 14px;
+
+  outline: none;
+
+  background:
+    rgba(255,255,255,0.8);
+}
+
+#ai-panel-send {
+
+  border: none;
+
+  border-radius: 999px;
+
+  padding: 0 16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--tech-blue),
+      var(--tech-purple)
+    );
+
+  color: white;
+
+  cursor: pointer;
+}
+
+/* 深色模式 */
+[data-theme="dark"] #ai-assistant-panel {
+
+  background:
+    rgba(18,26,48,0.9);
+
+  color: #dbe7ff;
+}
+
+[data-theme="dark"] .ai-msg-bot {
+
+  color: #dbe7ff;
+
+  background:
+    rgba(101,182,255,0.12);
+}
+
+[data-theme="dark"] .ai-panel-input-wrap {
+
+  background:
+    rgba(18,26,48,0.7);
+}
+
+[data-theme="dark"] #ai-panel-input {
+
+  background:
+    rgba(10,16,32,0.8);
+
+  color: white;
+}
+
+/* 手机端 */
+@media screen and (max-width: 600px) {
+
+  #ai-assistant-panel {
+
+    width: calc(100vw - 32px);
+
+    right: 16px;
+
+    bottom: 160px;
+
+    height: 480px;
+  }
+
+  #ai-assistant-btn {
+
+    right: 18px;
+  }
+}
+
+/* AI 面板快捷按钮 */
+.ai-panel-actions {
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.45);
+  border-bottom: 1px solid rgba(101,182,255,0.14);
+}
+
+#ai-summary-btn {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 14px;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--tech-blue), var(--tech-purple));
+  box-shadow: 0 6px 18px rgba(101,182,255,0.22);
+}
+
+#ai-summary-btn:hover {
+  transform: translateY(-2px);
+}
+
+[data-theme="dark"] .ai-panel-actions {
+  background: rgba(18,26,48,0.72);
+}
