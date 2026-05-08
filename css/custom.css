@@ -704,7 +704,7 @@ span.framework-info {
 }
 
 /* 夜间模式适配 */
-[data-theme="dark"] .ho.home-hero-title {
+[data-theme="dark"] .home-hero-title {
   font-size: 2rem;
   font-weight: 800;
   margin-bottom: 12px;
@@ -713,7 +713,7 @@ span.framework-info {
   -webkit-background-clip: text; /* 保留WebKit前缀属性 */
   color: transparent;
 }
-me-hero-card,
+[data-theme="dark"] .home-hero-card,
 [data-theme="dark"] .home-card,
 [data-theme="dark"] .home-hero-tags span {
   background: rgba(18,26,48,0.72);
