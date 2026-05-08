@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>https://star031104.github.io/data/blog-knowledge.json</loc>
+    
+    <lastmod>2026-05-08</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/photos/index.html</loc>
+    
+    <lastmod>2026-05-08</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/about/index.html</loc>
+    
+    <lastmod>2026-05-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/docs/index.html</loc>
+    
+    <lastmod>2026-05-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/2026/05/07/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-Qwen%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%E8%AE%B0%E5%BD%95/</loc>
+    
+    <lastmod>2026-05-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/2026/05/07/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-WSL2%E9%85%8D%E7%BD%AECUDA/</loc>
+    
+    <lastmod>2026-05-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/2026/05/07/%E9%9A%8F%E7%AC%94-%E4%BB%8A%E5%A4%A9%E7%9A%84%E4%B8%80%E7%82%B9%E6%83%B3%E6%B3%95/</loc>
+    
+    <lastmod>2026-05-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/2026/05/07/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/</loc>
+    
+    <lastmod>2026-05-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/reports/index.html</loc>
+    
+    <lastmod>2026-05-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/essays/index.html</loc>
+    
+    <lastmod>2026-05-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/videos/index.html</loc>
+    
+    <lastmod>2026-05-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/categories/index.html</loc>
+    
+    <lastmod>2026-05-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/tags/index.html</loc>
+    
+    <lastmod>2026-05-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+
+  <url>
+    <loc>https://star031104.github.io/</loc>
+    <lastmod>2026-05-08</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  
+
+  
+  <url>
+    <loc>https://star031104.github.io/categories/%E9%9A%8F%E7%AC%94/</loc>
+    <lastmod>2026-05-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/categories/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/</loc>
+    <lastmod>2026-05-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104.github.io/categories/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/</loc>
+    <lastmod>2026-05-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+</urlset>
