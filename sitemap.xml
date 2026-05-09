@@ -4,7 +4,16 @@
   <url>
     <loc>https://star031104-github-io.pages.dev/data/blog-knowledge.json</loc>
     
-    <lastmod>2026-05-08</lastmod>
+    <lastmod>2026-05-09</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104-github-io.pages.dev/2026/05/09/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-PPT-Master/</loc>
+    
+    <lastmod>2026-05-09</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -121,7 +130,7 @@
 
   <url>
     <loc>https://star031104-github-io.pages.dev/</loc>
-    <lastmod>2026-05-08</lastmod>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -130,22 +139,29 @@
 
   
   <url>
-    <loc>https://star031104-github-io.pages.dev/categories/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/</loc>
-    <lastmod>2026-05-08</lastmod>
+    <loc>https://star031104-github-io.pages.dev/categories/AI%E5%B7%A5%E5%85%B7/</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://star031104-github-io.pages.dev/categories/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/</loc>
-    <lastmod>2026-05-08</lastmod>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://star031104-github-io.pages.dev/categories/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://star031104-github-io.pages.dev/categories/%E9%9A%8F%E7%AC%94/</loc>
-    <lastmod>2026-05-08</lastmod>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>

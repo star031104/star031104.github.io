@@ -1,0 +1,409 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PPT-Master | 浅梦的博客</title><meta name="author" content="浅梦"><meta name="copyright" content="浅梦"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从项目原理、系统架构、SVG 渲染、DrawingML 到 Windows 本地部署，完整解析 PPT-Master 技术实现与运行流程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PPT-Master">
+<meta property="og:url" content="https://star031104-github-io.pages.dev/2026/05/09/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-PPT-Master/index.html">
+<meta property="og:site_name" content="浅梦的博客">
+<meta property="og:description" content="从项目原理、系统架构、SVG 渲染、DrawingML 到 Windows 本地部署，完整解析 PPT-Master 技术实现与运行流程">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://star031104-github-io.pages.dev/img/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.png">
+<meta property="article:published_time" content="2026-05-09T15:30:00.000Z">
+<meta property="article:modified_time" content="2026-05-09T15:19:17.356Z">
+<meta property="article:author" content="浅梦">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://star031104-github-io.pages.dev/img/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PPT-Master",
+  "url": "https://star031104-github-io.pages.dev/2026/05/09/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-PPT-Master/",
+  "image": "https://star031104-github-io.pages.dev/img/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.png",
+  "datePublished": "2026-05-09T15:30:00.000Z",
+  "dateModified": "2026-05-09T15:19:17.356Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "浅梦",
+      "url": "https://star031104-github-io.pages.dev"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png?v=2"><link rel="canonical" href="https://star031104-github-io.pages.dev/2026/05/09/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-PPT-Master/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PPT-Master',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css?v=20260509"><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"5450bf48e922459b89595f98ee94e6f9"}'></script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="浅梦的博客" type="application/atom+xml">
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 技术文档</span></a></div><div class="menus_item"><a class="site-page" href="/reports/"><i class="fa-fw fas fa-tools"></i><span> 开发报告</span></a></div><div class="menus_item"><a class="site-page" href="/essays/"><i class="fa-fw fas fa-pen"></i><span> 随笔</span></a></div><div class="menus_item"><a class="site-page" href="/photos/"><i class="fa-fw fas fa-image"></i><span> 图片</span></a></div><div class="menus_item"><a class="site-page" href="/videos/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/index.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">浅梦的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">PPT-Master</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 技术文档</span></a></div><div class="menus_item"><a class="site-page" href="/reports/"><i class="fa-fw fas fa-tools"></i><span> 开发报告</span></a></div><div class="menus_item"><a class="site-page" href="/essays/"><i class="fa-fw fas fa-pen"></i><span> 随笔</span></a></div><div class="menus_item"><a class="site-page" href="/photos/"><i class="fa-fw fas fa-image"></i><span> 图片</span></a></div><div class="menus_item"><a class="site-page" href="/videos/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PPT-Master</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-09T15:30:00.000Z" title="发表于 2026-05-09 23:30:00">2026-05-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-09T15:19:17.356Z" title="更新于 2026-05-09 23:19:17">2026-05-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/AI%E5%B7%A5%E5%85%B7/">AI工具</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PPT-Master-本地部署与项目原理完整技术文档（Windows-PyCharm-Anaconda）"><a href="#PPT-Master-本地部署与项目原理完整技术文档（Windows-PyCharm-Anaconda）" class="headerlink" title="PPT-Master 本地部署与项目原理完整技术文档（Windows + PyCharm + Anaconda）"></a>PPT-Master 本地部署与项目原理完整技术文档（Windows + PyCharm + Anaconda）</h1><h1 id="一、项目介绍"><a href="#一、项目介绍" class="headerlink" title="一、项目介绍"></a>一、项目介绍</h1><p>随着大语言模型的发展，AI 自动生成 PPT 已经成为一种非常热门的应用方向。</p>
+<p>传统 AI PPT 工具虽然可以快速生成内容，但大多数都存在一个问题：</p>
+<h2 id="“生成后无法继续编辑”"><a href="#“生成后无法继续编辑”" class="headerlink" title="“生成后无法继续编辑”"></a>“生成后无法继续编辑”</h2><p>很多工具最终导出的：</p>
+<ul>
+<li>实际上只是截图</li>
+<li>或者整页图片</li>
+<li>无法修改布局</li>
+<li>无法编辑图形</li>
+<li>无法继续二次设计</li>
+</ul>
+<p>而 PPT-Master 最大的特点：</p>
+<p>就是：</p>
+<h1 id="“生成真正可编辑的-PPT”"><a href="#“生成真正可编辑的-PPT”" class="headerlink" title="“生成真正可编辑的 PPT”"></a>“生成真正可编辑的 PPT”</h1><p>项目地址：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/hugohe3/ppt-master">https://github.com/hugohe3/ppt-master</a></p>
+<h1 id="二、PPT-Master-能干什么？"><a href="#二、PPT-Master-能干什么？" class="headerlink" title="二、PPT-Master 能干什么？"></a>二、PPT-Master 能干什么？</h1><p>PPT-Master 本质上：</p>
+<p>是一个：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LLM + SVG + PowerPoint DrawingML</span><br></pre></td></tr></table></figure>
+
+<p>组合而成的 AI PPT 自动生成系统。</p>
+<p>它不仅能：</p>
+<ul>
+<li>自动生成 PPT 内容</li>
+<li>自动设计页面布局</li>
+<li>自动生成图表</li>
+<li>自动生成 SVG 页面</li>
+</ul>
+<p>还可以：</p>
+<h1 id="将-SVG-转换为真正可编辑的-PPTX-文件"><a href="#将-SVG-转换为真正可编辑的-PPTX-文件" class="headerlink" title="将 SVG 转换为真正可编辑的 PPTX 文件"></a>将 SVG 转换为真正可编辑的 PPTX 文件</h1><p>最终生成的 PPT：</p>
+<p>支持：</p>
+<ul>
+<li>文本编辑</li>
+<li>图形编辑</li>
+<li>元素拖动</li>
+<li>配色修改</li>
+<li>动画</li>
+<li>转场</li>
+</ul>
+<p>而不是单纯的图片。</p>
+<h1 id="三、项目核心原理"><a href="#三、项目核心原理" class="headerlink" title="三、项目核心原理"></a>三、项目核心原理</h1><p>很多人以为：</p>
+<p>PPT-Master 是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AI → 直接生成 PPT</span><br></pre></td></tr></table></figure>
+
+<p>实际上并不是。</p>
+<p>真正流程：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Prompt</span><br><span class="line"> ↓</span><br><span class="line">LLM 生成内容</span><br><span class="line"> ↓</span><br><span class="line">HTML / SVG 页面</span><br><span class="line"> ↓</span><br><span class="line">SVG 渲染</span><br><span class="line"> ↓</span><br><span class="line">svg_to_pptx.py</span><br><span class="line"> ↓</span><br><span class="line">DrawingML</span><br><span class="line"> ↓</span><br><span class="line">PPTX</span><br></pre></td></tr></table></figure>
+
+<h1 id="四、什么是-SVG？"><a href="#四、什么是-SVG？" class="headerlink" title="四、什么是 SVG？"></a>四、什么是 SVG？</h1><p>SVG：</p>
+<p>全称：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Scalable Vector Graphics</span><br></pre></td></tr></table></figure>
+
+<p>即：</p>
+<h1 id="矢量图形"><a href="#矢量图形" class="headerlink" title="矢量图形"></a>矢量图形</h1><p>与普通 PNG&#x2F;JPG 最大区别：</p>
+<h2 id="SVG-是“图形描述”"><a href="#SVG-是“图形描述”" class="headerlink" title="SVG 是“图形描述”"></a>SVG 是“图形描述”</h2><p>例如：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">rect</span> <span class="attr">x</span>=<span class="string">&quot;0&quot;</span> <span class="attr">y</span>=<span class="string">&quot;0&quot;</span> <span class="attr">width</span>=<span class="string">&quot;100&quot;</span> <span class="attr">height</span>=<span class="string">&quot;100&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>表示：</p>
+<p>绘制一个矩形。</p>
+<p>因此：</p>
+<p>SVG：</p>
+<ul>
+<li>可以无限缩放</li>
+<li>不失真</li>
+<li>元素独立</li>
+<li>更适合转换为 PPT 图形</li>
+</ul>
+<h1 id="五、为什么-SVG-非常适合-PPT？"><a href="#五、为什么-SVG-非常适合-PPT？" class="headerlink" title="五、为什么 SVG 非常适合 PPT？"></a>五、为什么 SVG 非常适合 PPT？</h1><p>因为：</p>
+<p>PPT 本质上：</p>
+<p>也是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">矢量图形系统</span><br></pre></td></tr></table></figure>
+
+<p>所以：</p>
+<p>SVG 与 PowerPoint：</p>
+<p>天然兼容。</p>
+<h1 id="六、什么是-DrawingML？"><a href="#六、什么是-DrawingML？" class="headerlink" title="六、什么是 DrawingML？"></a>六、什么是 DrawingML？</h1><p>这是 PPT-Master 最关键的技术之一。</p>
+<p>DrawingML：</p>
+<p>是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Microsoft Office 的图形描述语言</span><br></pre></td></tr></table></figure>
+
+<p>即：</p>
+<p>PPT 中：</p>
+<p>所有：</p>
+<ul>
+<li>文字</li>
+<li>图形</li>
+<li>线条</li>
+<li>形状</li>
+</ul>
+<p>本质上：</p>
+<p>都是 DrawingML。</p>
+<h1 id="七、为什么很多-AI-PPT-无法编辑？"><a href="#七、为什么很多-AI-PPT-无法编辑？" class="headerlink" title="七、为什么很多 AI PPT 无法编辑？"></a>七、为什么很多 AI PPT 无法编辑？</h1><p>因为：</p>
+<p>它们：</p>
+<p>实际上：</p>
+<p>只是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">截图 → 放进 PPT</span><br></pre></td></tr></table></figure>
+
+<p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">PNG</span><br><span class="line">JPG</span><br><span class="line">Canvas 截图</span><br></pre></td></tr></table></figure>
+
+<p>所以：</p>
+<p>无法：</p>
+<ul>
+<li>修改单独文字</li>
+<li>修改图形</li>
+<li>修改布局</li>
+</ul>
+<h1 id="八、PPT-Master-为什么能编辑？"><a href="#八、PPT-Master-为什么能编辑？" class="headerlink" title="八、PPT-Master 为什么能编辑？"></a>八、PPT-Master 为什么能编辑？</h1><p>因为：</p>
+<p>它：</p>
+<p>不是插图片。</p>
+<p>而是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SVG → DrawingML → PowerPoint Shape</span><br></pre></td></tr></table></figure>
+
+<p>因此：</p>
+<p>生成的是：</p>
+<p>真正 Office 原生元素。</p>
+<h1 id="九、项目适合什么场景？"><a href="#九、项目适合什么场景？" class="headerlink" title="九、项目适合什么场景？"></a>九、项目适合什么场景？</h1><p>PPT-Master 非常适合：</p>
+<h2 id="1-学术场景"><a href="#1-学术场景" class="headerlink" title="1. 学术场景"></a>1. 学术场景</h2><p>例如：</p>
+<ul>
+<li>论文汇报</li>
+<li>毕设答辩</li>
+<li>研究生开题</li>
+<li>技术演示</li>
+</ul>
+<h2 id="2-企业场景"><a href="#2-企业场景" class="headerlink" title="2. 企业场景"></a>2. 企业场景</h2><p>例如：</p>
+<ul>
+<li>产品汇报</li>
+<li>周报</li>
+<li>商业演示</li>
+<li>数据分析</li>
+</ul>
+<h2 id="3-AI-Agent-自动办公"><a href="#3-AI-Agent-自动办公" class="headerlink" title="3. AI Agent 自动办公"></a>3. AI Agent 自动办公</h2><p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">OpenClaw</span><br><span class="line">+</span><br><span class="line">Qwen</span><br><span class="line">+</span><br><span class="line">PPT-Master</span><br></pre></td></tr></table></figure>
+
+<p>自动：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">读取数据</span><br><span class="line">↓</span><br><span class="line">总结内容</span><br><span class="line">↓</span><br><span class="line">生成 PPT</span><br><span class="line">↓</span><br><span class="line">导出汇报</span><br></pre></td></tr></table></figure>
+
+<h1 id="十、下载项目"><a href="#十、下载项目" class="headerlink" title="十、下载项目"></a>十、下载项目</h1><h2 id="Git-Clone"><a href="#Git-Clone" class="headerlink" title="Git Clone"></a>Git Clone</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/hugohe3/ppt-master.git</span><br></pre></td></tr></table></figure>
+
+<h2 id="或下载-ZIP"><a href="#或下载-ZIP" class="headerlink" title="或下载 ZIP"></a>或下载 ZIP</h2><p>GitHub：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Code</span><br><span class="line">↓</span><br><span class="line">Download ZIP</span><br></pre></td></tr></table></figure>
+
+<h1 id="十一、创建-Conda-环境"><a href="#十一、创建-Conda-环境" class="headerlink" title="十一、创建 Conda 环境"></a>十一、创建 Conda 环境</h1><p>推荐：</p>
+<p>单独创建环境。</p>
+<h2 id="创建环境"><a href="#创建环境" class="headerlink" title="创建环境"></a>创建环境</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda create -n pptmaster python=3.10</span><br></pre></td></tr></table></figure>
+
+<h2 id="激活环境"><a href="#激活环境" class="headerlink" title="激活环境"></a>激活环境</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda activate pptmaster</span><br></pre></td></tr></table></figure>
+
+<h1 id="十二、安装项目依赖"><a href="#十二、安装项目依赖" class="headerlink" title="十二、安装项目依赖"></a>十二、安装项目依赖</h1><p>进入项目目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ppt-master</span><br></pre></td></tr></table></figure>
+
+<p>安装依赖：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install -r requirements.txt</span><br></pre></td></tr></table></figure>
+
+<h2 id="国内推荐清华源"><a href="#国内推荐清华源" class="headerlink" title="国内推荐清华源"></a>国内推荐清华源</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple</span><br></pre></td></tr></table></figure>
+
+<h1 id="十三、如何修改-PPT-风格？"><a href="#十三、如何修改-PPT-风格？" class="headerlink" title="十三、如何修改 PPT 风格？"></a>十三、如何修改 PPT 风格？</h1><p>这是很多人最关心的问题。</p>
+<h1 id="方法-1：修改模板"><a href="#方法-1：修改模板" class="headerlink" title="方法 1：修改模板"></a>方法 1：修改模板</h1><p>项目中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">templates/</span><br></pre></td></tr></table></figure>
+
+<p>目录：</p>
+<p>控制：</p>
+<ul>
+<li>字体</li>
+<li>配色</li>
+<li>页面布局</li>
+<li>标题样式</li>
+</ul>
+<h1 id="方法-2：Prompt-控制风格"><a href="#方法-2：Prompt-控制风格" class="headerlink" title="方法 2：Prompt 控制风格"></a>方法 2：Prompt 控制风格</h1><p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">生成科技感学术 PPT：</span><br><span class="line"></span><br><span class="line">要求：</span><br><span class="line">- 深蓝配色</span><br><span class="line">- 极简风格</span><br><span class="line">- 卡片式布局</span><br><span class="line">- 动态感图形</span><br></pre></td></tr></table></figure>
+
+<h1 id="方法-3：模仿论文风格"><a href="#方法-3：模仿论文风格" class="headerlink" title="方法 3：模仿论文风格"></a>方法 3：模仿论文风格</h1><p>甚至可以：</p>
+<p>上传论文截图。</p>
+<p>让 AI：</p>
+<p>模仿：</p>
+<ul>
+<li>配色</li>
+<li>字体</li>
+<li>图表</li>
+<li>布局</li>
+</ul>
+<h1 id="十四、如何接入-API？"><a href="#十四、如何接入-API？" class="headerlink" title="十四、如何接入 API？"></a>十四、如何接入 API？</h1><p>PPT-Master 本质：</p>
+<p>是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LLM + SVG + PPT</span><br></pre></td></tr></table></figure>
+
+<p>因此：</p>
+<p>支持：</p>
+<ul>
+<li>OpenAI</li>
+<li>DeepSeek</li>
+<li>Qwen</li>
+<li>Claude</li>
+<li>Ollama</li>
+<li>llama.cpp</li>
+</ul>
+<h1 id="十五、如何提高生成质量？"><a href="#十五、如何提高生成质量？" class="headerlink" title="十五、如何提高生成质量？"></a>十五、如何提高生成质量？</h1><h1 id="1-使用更强模型"><a href="#1-使用更强模型" class="headerlink" title="1. 使用更强模型"></a>1. 使用更强模型</h1><p>推荐：</p>
+<ul>
+<li>GPT-4.1</li>
+<li>Claude</li>
+<li>Qwen3</li>
+<li>DeepSeek</li>
+</ul>
+<h1 id="2-强化-Prompt"><a href="#2-强化-Prompt" class="headerlink" title="2. 强化 Prompt"></a>2. 强化 Prompt</h1><p>例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">生成 Apple 发布会风格 PPT：</span><br><span class="line">- 极简白色背景</span><br><span class="line">- 大标题</span><br><span class="line">- 超大留白</span><br><span class="line">- 动态渐变</span><br></pre></td></tr></table></figure>
+
+<h1 id="3-使用参考图片"><a href="#3-使用参考图片" class="headerlink" title="3. 使用参考图片"></a>3. 使用参考图片</h1><p>上传：</p>
+<ul>
+<li>PPT</li>
+<li>论文</li>
+<li>UI 截图</li>
+</ul>
+<p>让 AI：</p>
+<p>模仿风格。</p>
+<h1 id="十六、项目最大优点"><a href="#十六、项目最大优点" class="headerlink" title="十六、项目最大优点"></a>十六、项目最大优点</h1><p>最大的优点：</p>
+<h1 id="“真正适合二次编辑”"><a href="#“真正适合二次编辑”" class="headerlink" title="“真正适合二次编辑”"></a>“真正适合二次编辑”</h1><p>这是很多 AI PPT：</p>
+<p>做不到的。</p>
+<h1 id="十七、适合什么人？"><a href="#十七、适合什么人？" class="headerlink" title="十七、适合什么人？"></a>十七、适合什么人？</h1><p>非常适合：</p>
+<ul>
+<li>学生</li>
+<li>毕设</li>
+<li>研究生</li>
+<li>AI 开发者</li>
+<li>企业演示</li>
+<li>自动办公</li>
+</ul>
+<h1 id="十八、未来玩法"><a href="#十八、未来玩法" class="headerlink" title="十八、未来玩法"></a>十八、未来玩法</h1><p>我现在正在尝试：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">OpenClaw</span><br><span class="line">+</span><br><span class="line">Qwen</span><br><span class="line">+</span><br><span class="line">PPT-Master</span><br></pre></td></tr></table></figure>
+
+<p>实现：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">自动读取内容</span><br><span class="line">↓</span><br><span class="line">自动总结</span><br><span class="line">↓</span><br><span class="line">自动生成 PPT</span><br><span class="line">↓</span><br><span class="line">自动导出</span><br></pre></td></tr></table></figure>
+
+<h1 id="十九、总结"><a href="#十九、总结" class="headerlink" title="十九、总结"></a>十九、总结</h1><p>PPT-Master 并不是：</p>
+<p>普通 AI PPT 工具。</p>
+<p>它更像：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">AI</span><br><span class="line">+</span><br><span class="line">SVG 渲染系统</span><br><span class="line">+</span><br><span class="line">DrawingML</span><br><span class="line">+</span><br><span class="line">Office 自动化</span><br></pre></td></tr></table></figure>
+
+<p>构成的一整套：</p>
+<h1 id="AI-自动演示文稿生成系统"><a href="#AI-自动演示文稿生成系统" class="headerlink" title="AI 自动演示文稿生成系统"></a>AI 自动演示文稿生成系统</h1><p>其真正强大的地方：</p>
+<p>不是：</p>
+<p>“一键生成”。</p>
+<p>而是：</p>
+<h1 id="“生成后还能继续编辑”"><a href="#“生成后还能继续编辑”" class="headerlink" title="“生成后还能继续编辑”"></a>“生成后还能继续编辑”</h1><p>这一点：</p>
+<p>对于：</p>
+<ul>
+<li>毕设</li>
+<li>学术汇报</li>
+<li>企业 PPT</li>
+</ul>
+<p>都非常重要。</p>
+<h3 id="PPT-Master-保姆教程，如何在-windows-系统下安装使用及如何配置生图模型"><a href="#PPT-Master-保姆教程，如何在-windows-系统下安装使用及如何配置生图模型" class="headerlink" title="PPT-Master 保姆教程，如何在 windows 系统下安装使用及如何配置生图模型"></a><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1g59CB3Esj?vd_source=1ca5bb8c4551fd6e13f5aa490c154a33">PPT-Master 保姆教程，如何在 windows 系统下安装使用及如何配置生图模型</a></h3></article><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.png" data-sites="wechat,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/05/07/%E9%9A%8F%E7%AC%94-%E4%BB%8A%E5%A4%A9%E7%9A%84%E4%B8%80%E7%82%B9%E6%83%B3%E6%B3%95/" title="搭建属于自己的博客"><img class="cover" src="/img/%E9%9A%8F%E7%AC%94.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">搭建属于自己的博客</div></div><div class="info-2"><div class="info-item-1">今天花了一整天，把自己的个人博客慢慢搭了起来。 从最开始什么都没有，到现在真正拥有了一个属于自己的网页空间，过程其实比想象中更有意思。 一开始只是想简单做一个技术博客，用来记录以后学习 AI、本地大模型和开发过程里的内容。后来越改越上头，从 Hexo 到 Butterfly，从背景图到毛玻璃，再到导航栏、图片墙、视频页、随笔页……慢慢发现，自己想做的已经不只是一个“技术博客”。 更像是一个属于自己的数字空间。 这里以后不仅会放技术文档，也会记录一些生活里的东西，比如图片、视频、游戏截图、灵感、情绪、碎碎念，甚至可能只是某一天突然很喜欢的一张图。 今天最大的感受，大概是： 原来从零把一个网站慢慢搭成自己喜欢的样子，会有一种很强的“归属感”。 尤其是当背景、颜色、动画和布局一点点变成自己想要的风格的时候，会觉得这个页面真的开始“像自己”了。 目前博客还有很多地方没完善：  关于我页面还没完全做好 图片墙和视频页还在继续调整 后面还想接 AI 功能 还想加更多动态效果和内容分类  但至少现在，它已经不再是默认模板了。 而是真正开始变成： 一个属于自己的长期记录空间。 以后应该会经常在这...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">浅梦</div><div class="author-info-description">我的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/star031104" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="https://space.bilibili.com/435320784" target="_blank" title="Bilibili"><i class="fas fa-tv" style="color: #fb7299;"></i></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PPT-Master-%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%E4%B8%8E%E9%A1%B9%E7%9B%AE%E5%8E%9F%E7%90%86%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3%EF%BC%88Windows-PyCharm-Anaconda%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">PPT-Master 本地部署与项目原理完整技术文档（Windows + PyCharm + Anaconda）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%A1%B9%E7%9B%AE%E4%BB%8B%E7%BB%8D"><span class="toc-number">2.</span> <span class="toc-text">一、项目介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%80%9C%E7%94%9F%E6%88%90%E5%90%8E%E6%97%A0%E6%B3%95%E7%BB%A7%E7%BB%AD%E7%BC%96%E8%BE%91%E2%80%9D"><span class="toc-number">2.1.</span> <span class="toc-text">“生成后无法继续编辑”</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E2%80%9C%E7%94%9F%E6%88%90%E7%9C%9F%E6%AD%A3%E5%8F%AF%E7%BC%96%E8%BE%91%E7%9A%84-PPT%E2%80%9D"><span class="toc-number">3.</span> <span class="toc-text">“生成真正可编辑的 PPT”</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81PPT-Master-%E8%83%BD%E5%B9%B2%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">二、PPT-Master 能干什么？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%86-SVG-%E8%BD%AC%E6%8D%A2%E4%B8%BA%E7%9C%9F%E6%AD%A3%E5%8F%AF%E7%BC%96%E8%BE%91%E7%9A%84-PPTX-%E6%96%87%E4%BB%B6"><span class="toc-number">5.</span> <span class="toc-text">将 SVG 转换为真正可编辑的 PPTX 文件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E9%A1%B9%E7%9B%AE%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-number">6.</span> <span class="toc-text">三、项目核心原理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF-SVG%EF%BC%9F"><span class="toc-number">7.</span> <span class="toc-text">四、什么是 SVG？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9F%A2%E9%87%8F%E5%9B%BE%E5%BD%A2"><span class="toc-number">8.</span> <span class="toc-text">矢量图形</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#SVG-%E6%98%AF%E2%80%9C%E5%9B%BE%E5%BD%A2%E6%8F%8F%E8%BF%B0%E2%80%9D"><span class="toc-number">8.1.</span> <span class="toc-text">SVG 是“图形描述”</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88-SVG-%E9%9D%9E%E5%B8%B8%E9%80%82%E5%90%88-PPT%EF%BC%9F"><span class="toc-number">9.</span> <span class="toc-text">五、为什么 SVG 非常适合 PPT？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF-DrawingML%EF%BC%9F"><span class="toc-number">10.</span> <span class="toc-text">六、什么是 DrawingML？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BE%88%E5%A4%9A-AI-PPT-%E6%97%A0%E6%B3%95%E7%BC%96%E8%BE%91%EF%BC%9F"><span class="toc-number">11.</span> <span class="toc-text">七、为什么很多 AI PPT 无法编辑？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81PPT-Master-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E7%BC%96%E8%BE%91%EF%BC%9F"><span class="toc-number">12.</span> <span class="toc-text">八、PPT-Master 为什么能编辑？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E9%A1%B9%E7%9B%AE%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%EF%BC%9F"><span class="toc-number">13.</span> <span class="toc-text">九、项目适合什么场景？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AD%A6%E6%9C%AF%E5%9C%BA%E6%99%AF"><span class="toc-number">13.1.</span> <span class="toc-text">1. 学术场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BC%81%E4%B8%9A%E5%9C%BA%E6%99%AF"><span class="toc-number">13.2.</span> <span class="toc-text">2. 企业场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-AI-Agent-%E8%87%AA%E5%8A%A8%E5%8A%9E%E5%85%AC"><span class="toc-number">13.3.</span> <span class="toc-text">3. AI Agent 自动办公</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E4%B8%8B%E8%BD%BD%E9%A1%B9%E7%9B%AE"><span class="toc-number">14.</span> <span class="toc-text">十、下载项目</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Git-Clone"><span class="toc-number">14.1.</span> <span class="toc-text">Git Clone</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%88%96%E4%B8%8B%E8%BD%BD-ZIP"><span class="toc-number">14.2.</span> <span class="toc-text">或下载 ZIP</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E5%88%9B%E5%BB%BA-Conda-%E7%8E%AF%E5%A2%83"><span class="toc-number">15.</span> <span class="toc-text">十一、创建 Conda 环境</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E7%8E%AF%E5%A2%83"><span class="toc-number">15.1.</span> <span class="toc-text">创建环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BF%80%E6%B4%BB%E7%8E%AF%E5%A2%83"><span class="toc-number">15.2.</span> <span class="toc-text">激活环境</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81%E5%AE%89%E8%A3%85%E9%A1%B9%E7%9B%AE%E4%BE%9D%E8%B5%96"><span class="toc-number">16.</span> <span class="toc-text">十二、安装项目依赖</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%BD%E5%86%85%E6%8E%A8%E8%8D%90%E6%B8%85%E5%8D%8E%E6%BA%90"><span class="toc-number">16.1.</span> <span class="toc-text">国内推荐清华源</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%89%E3%80%81%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9-PPT-%E9%A3%8E%E6%A0%BC%EF%BC%9F"><span class="toc-number">17.</span> <span class="toc-text">十三、如何修改 PPT 风格？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%96%B9%E6%B3%95-1%EF%BC%9A%E4%BF%AE%E6%94%B9%E6%A8%A1%E6%9D%BF"><span class="toc-number">18.</span> <span class="toc-text">方法 1：修改模板</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%96%B9%E6%B3%95-2%EF%BC%9APrompt-%E6%8E%A7%E5%88%B6%E9%A3%8E%E6%A0%BC"><span class="toc-number">19.</span> <span class="toc-text">方法 2：Prompt 控制风格</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%96%B9%E6%B3%95-3%EF%BC%9A%E6%A8%A1%E4%BB%BF%E8%AE%BA%E6%96%87%E9%A3%8E%E6%A0%BC"><span class="toc-number">20.</span> <span class="toc-text">方法 3：模仿论文风格</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E5%9B%9B%E3%80%81%E5%A6%82%E4%BD%95%E6%8E%A5%E5%85%A5-API%EF%BC%9F"><span class="toc-number">21.</span> <span class="toc-text">十四、如何接入 API？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%BA%94%E3%80%81%E5%A6%82%E4%BD%95%E6%8F%90%E9%AB%98%E7%94%9F%E6%88%90%E8%B4%A8%E9%87%8F%EF%BC%9F"><span class="toc-number">22.</span> <span class="toc-text">十五、如何提高生成质量？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BD%BF%E7%94%A8%E6%9B%B4%E5%BC%BA%E6%A8%A1%E5%9E%8B"><span class="toc-number">23.</span> <span class="toc-text">1. 使用更强模型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%BC%BA%E5%8C%96-Prompt"><span class="toc-number">24.</span> <span class="toc-text">2. 强化 Prompt</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E4%BD%BF%E7%94%A8%E5%8F%82%E8%80%83%E5%9B%BE%E7%89%87"><span class="toc-number">25.</span> <span class="toc-text">3. 使用参考图片</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E5%85%AD%E3%80%81%E9%A1%B9%E7%9B%AE%E6%9C%80%E5%A4%A7%E4%BC%98%E7%82%B9"><span class="toc-number">26.</span> <span class="toc-text">十六、项目最大优点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E2%80%9C%E7%9C%9F%E6%AD%A3%E9%80%82%E5%90%88%E4%BA%8C%E6%AC%A1%E7%BC%96%E8%BE%91%E2%80%9D"><span class="toc-number">27.</span> <span class="toc-text">“真正适合二次编辑”</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%83%E3%80%81%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E4%BA%BA%EF%BC%9F"><span class="toc-number">28.</span> <span class="toc-text">十七、适合什么人？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E5%85%AB%E3%80%81%E6%9C%AA%E6%9D%A5%E7%8E%A9%E6%B3%95"><span class="toc-number">29.</span> <span class="toc-text">十八、未来玩法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B9%9D%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">30.</span> <span class="toc-text">十九、总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#AI-%E8%87%AA%E5%8A%A8%E6%BC%94%E7%A4%BA%E6%96%87%E7%A8%BF%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F"><span class="toc-number">31.</span> <span class="toc-text">AI 自动演示文稿生成系统</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E2%80%9C%E7%94%9F%E6%88%90%E5%90%8E%E8%BF%98%E8%83%BD%E7%BB%A7%E7%BB%AD%E7%BC%96%E8%BE%91%E2%80%9D"><span class="toc-number">32.</span> <span class="toc-text">“生成后还能继续编辑”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#PPT-Master-%E4%BF%9D%E5%A7%86%E6%95%99%E7%A8%8B%EF%BC%8C%E5%A6%82%E4%BD%95%E5%9C%A8-windows-%E7%B3%BB%E7%BB%9F%E4%B8%8B%E5%AE%89%E8%A3%85%E4%BD%BF%E7%94%A8%E5%8F%8A%E5%A6%82%E4%BD%95%E9%85%8D%E7%BD%AE%E7%94%9F%E5%9B%BE%E6%A8%A1%E5%9E%8B"><span class="toc-number">32.1.</span> <span class="toc-text">PPT-Master 保姆教程，如何在 windows 系统下安装使用及如何配置生图模型</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/05/09/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-PPT-Master/" title="PPT-Master"><img src="/img/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PPT-Master"/></a><div class="content"><a class="title" href="/2026/05/09/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-PPT-Master/" title="PPT-Master">PPT-Master</a><time datetime="2026-05-09T15:30:00.000Z" title="发表于 2026-05-09 23:30:00">2026-05-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/07/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/" title="基于大模型的移动应用合规检测系统开发记录"><img src="/img/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/1.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于大模型的移动应用合规检测系统开发记录"/></a><div class="content"><a class="title" href="/2026/05/07/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/" title="基于大模型的移动应用合规检测系统开发记录">基于大模型的移动应用合规检测系统开发记录</a><time datetime="2026-05-06T16:00:00.000Z" title="发表于 2026-05-07 00:00:00">2026-05-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/07/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-Qwen%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%E8%AE%B0%E5%BD%95/" title="Qwen 本地部署记录"><img src="/img/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Qwen 本地部署记录"/></a><div class="content"><a class="title" href="/2026/05/07/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-Qwen%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%E8%AE%B0%E5%BD%95/" title="Qwen 本地部署记录">Qwen 本地部署记录</a><time datetime="2026-05-06T16:00:00.000Z" title="发表于 2026-05-07 00:00:00">2026-05-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/07/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-WSL2%E9%85%8D%E7%BD%AECUDA/" title="WSL2 CUDA 配置记录"><img src="/img/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="WSL2 CUDA 配置记录"/></a><div class="content"><a class="title" href="/2026/05/07/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-WSL2%E9%85%8D%E7%BD%AECUDA/" title="WSL2 CUDA 配置记录">WSL2 CUDA 配置记录</a><time datetime="2026-05-06T16:00:00.000Z" title="发表于 2026-05-07 00:00:00">2026-05-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/07/%E9%9A%8F%E7%AC%94-%E4%BB%8A%E5%A4%A9%E7%9A%84%E4%B8%80%E7%82%B9%E6%83%B3%E6%B3%95/" title="搭建属于自己的博客"><img src="/img/%E9%9A%8F%E7%AC%94.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="搭建属于自己的博客"/></a><div class="content"><a class="title" href="/2026/05/07/%E9%9A%8F%E7%AC%94-%E4%BB%8A%E5%A4%A9%E7%9A%84%E4%B8%80%E7%82%B9%E6%83%B3%E6%B3%95/" title="搭建属于自己的博客">搭建属于自己的博客</a><time datetime="2026-05-06T16:00:00.000Z" title="发表于 2026-05-07 00:00:00">2026-05-07</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 浅梦</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script src="/js/ai-assistant.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
