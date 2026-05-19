@@ -1,0 +1,756 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现 | 浅梦的博客</title><meta name="author" content="浅梦"><meta name="copyright" content="浅梦"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="该项目以本地大语言模型为核心，结合 FunASR 语音识别、GPT-SoVITS 语音合成、Search&#x2F;RAG、Tool Calling、长期记忆、屏幕观察和 Skill Package 工作流，实现了一个可在 Windows 本地运行的个人 AI Agent Runtime。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现">
+<meta property="og:url" content="https://star031104-github-io.pages.dev/2026/05/19/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-AI%E8%AF%AD%E9%9F%B3%E5%8A%A9%E6%89%8B/index.html">
+<meta property="og:site_name" content="浅梦的博客">
+<meta property="og:description" content="该项目以本地大语言模型为核心，结合 FunASR 语音识别、GPT-SoVITS 语音合成、Search&#x2F;RAG、Tool Calling、长期记忆、屏幕观察和 Skill Package 工作流，实现了一个可在 Windows 本地运行的个人 AI Agent Runtime。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://star031104-github-io.pages.dev/img/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/2.png">
+<meta property="article:published_time" content="2026-05-18T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-19T11:08:00.973Z">
+<meta property="article:author" content="浅梦">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://star031104-github-io.pages.dev/img/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现",
+  "url": "https://star031104-github-io.pages.dev/2026/05/19/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-AI%E8%AF%AD%E9%9F%B3%E5%8A%A9%E6%89%8B/",
+  "image": "https://star031104-github-io.pages.dev/img/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/2.png",
+  "datePublished": "2026-05-18T16:00:00.000Z",
+  "dateModified": "2026-05-19T11:08:00.973Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "浅梦",
+      "url": "https://star031104-github-io.pages.dev"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png?v=2"><link rel="canonical" href="https://star031104-github-io.pages.dev/2026/05/19/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-AI%E8%AF%AD%E9%9F%B3%E5%8A%A9%E6%89%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css?v=20260509"><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"5450bf48e922459b89595f98ee94e6f9"}'></script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="浅梦的博客" type="application/atom+xml">
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 技术文档</span></a></div><div class="menus_item"><a class="site-page" href="/reports/"><i class="fa-fw fas fa-tools"></i><span> 开发报告</span></a></div><div class="menus_item"><a class="site-page" href="/essays/"><i class="fa-fw fas fa-pen"></i><span> 随笔</span></a></div><div class="menus_item"><a class="site-page" href="/photos/"><i class="fa-fw fas fa-image"></i><span> 图片</span></a></div><div class="menus_item"><a class="site-page" href="/videos/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/index.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">浅梦的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 技术文档</span></a></div><div class="menus_item"><a class="site-page" href="/reports/"><i class="fa-fw fas fa-tools"></i><span> 开发报告</span></a></div><div class="menus_item"><a class="site-page" href="/essays/"><i class="fa-fw fas fa-pen"></i><span> 随笔</span></a></div><div class="menus_item"><a class="site-page" href="/photos/"><i class="fa-fw fas fa-image"></i><span> 图片</span></a></div><div class="menus_item"><a class="site-page" href="/videos/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-19T11:08:00.973Z" title="更新于 2026-05-19 19:08:00">2026-05-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/">开发报告</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="浅梦-AI-助手-Runtime-开发报告：一个本地语音桌面-Agent-的工程化实现"><a href="#浅梦-AI-助手-Runtime-开发报告：一个本地语音桌面-Agent-的工程化实现" class="headerlink" title="浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现"></a>浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现</h1><h2 id="1-项目概述"><a href="#1-项目概述" class="headerlink" title="1. 项目概述"></a>1. 项目概述</h2><p><code>AI_voice_assistant</code> 是一个面向 Windows 本地环境的个人 AI 助手 Runtime。它并不是一个简单的“语音聊天脚本”，而是一个把本地大语言模型、语音识别、语音合成、桌面上下文、网页搜索、RAG、工具调用、长期记忆和 Skill Package 扩展机制整合到一起的桌面 Agent 框架。</p>
+<p>从整体定位来看，该项目希望实现的是：</p>
+<ul>
+<li>以本地大模型为核心的对话能力；</li>
+<li>通过 FunASR 完成中文语音输入；</li>
+<li>通过 GPT-SoVITS 完成拟人化语音输出；</li>
+<li>通过弹窗、桌宠入口、CLI、WebUI 等方式提供多入口交互；</li>
+<li>通过 Search&#x2F;RAG 机制增强实时信息获取能力；</li>
+<li>通过 Tool Registry 和 Skill Package 实现工具调用与任务扩展；</li>
+<li>通过屏幕观察、浏览器上下文、桌面状态等能力，让助手具备一定的“桌面感知”能力。</li>
+</ul>
+<p>如果用一句话概括：</p>
+<blockquote>
+<p>这是一个本地可部署、支持语音交互、具备桌面上下文感知、可联网检索、可调用工具、可扩展技能包的个人 AI Agent Runtime。</p>
+</blockquote>
+<h2 id="2-技术栈分析"><a href="#2-技术栈分析" class="headerlink" title="2. 技术栈分析"></a>2. 技术栈分析</h2><h3 id="2-1-本地大模型服务"><a href="#2-1-本地大模型服务" class="headerlink" title="2.1 本地大模型服务"></a>2.1 本地大模型服务</h3><p>项目默认使用 OpenAI-compatible API 形式访问本地模型服务。配置文件中主模型地址为：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">llm:</span></span><br><span class="line">  <span class="attr">base_url:</span> <span class="string">&quot;http://127.0.0.1:8000/v1&quot;</span></span><br><span class="line">  <span class="attr">api_key_env:</span> <span class="string">&quot;LOCAL_LLM_API_KEY&quot;</span></span><br><span class="line">  <span class="attr">api_key:</span> <span class="string">&quot;local&quot;</span></span><br><span class="line">  <span class="attr">model:</span> <span class="string">&quot;Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这意味着项目本身并不直接加载大模型权重，而是通过本地推理服务访问模型。仓库脚本中主要配套的是 <code>llama.cpp</code> 的 <code>llama-server</code>。</p>
+<p>项目约定了多个模型服务端口：</p>
+<table>
+<thead>
+<tr>
+<th>服务</th>
+<th align="right">默认端口</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主对话模型</td>
+<td align="right">8000</td>
+<td>负责普通对话、Agent 推理、工具调用决策</td>
+</tr>
+<tr>
+<td>视觉语言模型</td>
+<td align="right">8001</td>
+<td>负责屏幕截图或视觉内容理解</td>
+</tr>
+<tr>
+<td>Embedding 模型</td>
+<td align="right">8010</td>
+<td>负责 RAG 向量召回</td>
+</tr>
+<tr>
+<td>Reranker 模型</td>
+<td align="right">8011</td>
+<td>负责搜索结果&#x2F;网页片段重排序</td>
+</tr>
+<tr>
+<td>GPT-SoVITS</td>
+<td align="right">9880</td>
+<td>负责文本转语音</td>
+</tr>
+<tr>
+<td>SearXNG</td>
+<td align="right">8080</td>
+<td>负责本地搜索聚合</td>
+</tr>
+</tbody></table>
+<p>这种拆分方式的优点是清晰：每个模型服务负责一种能力，Runtime 只负责调用和编排。缺点是启动成本较高，用户需要同时保证多个本地服务可用。</p>
+<h3 id="2-2-语音输入：FunASR"><a href="#2-2-语音输入：FunASR" class="headerlink" title="2.2 语音输入：FunASR"></a>2.2 语音输入：FunASR</h3><p>语音输入部分位于 <code>app/voice_input</code>，核心包括：</p>
+<ul>
+<li><code>service.py</code>：语音输入服务入口；</li>
+<li><code>voice_input_manager.py</code>：麦克风采集、VAD、声纹验证、流式识别、最终识别的主流程；</li>
+<li><code>asr_engine.py</code>：FunASR 模型封装；</li>
+<li><code>speaker_verifier.py</code>：声纹验证与声纹档案更新；</li>
+<li><code>text_filter.py</code>：过滤误识别文本；</li>
+<li><code>voice_vad.py</code>：语音活动检测；</li>
+<li><code>events.py</code>：语音服务事件结构。</li>
+</ul>
+<p>配置文件 <code>configs/voice_input.yaml</code> 中默认使用：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">stream_model:</span> <span class="string">&quot;paraformer-zh-streaming&quot;</span></span><br><span class="line"><span class="attr">final_model:</span> <span class="string">&quot;paraformer-zh&quot;</span></span><br><span class="line"><span class="attr">punc_model:</span> <span class="string">&quot;ct-punc-c&quot;</span></span><br><span class="line"><span class="attr">vad_model:</span> <span class="string">&quot;fsmn-vad&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>项目的语音输入并不是简单地“录音然后识别”，而是包含以下流程：</p>
+<ol>
+<li>从麦克风采集音频；</li>
+<li>进行噪声校准；</li>
+<li>使用 VAD 判断是否有人声；</li>
+<li>进行声纹验证，判断是不是用户本人；</li>
+<li>流式 ASR 输出 partial 文本；</li>
+<li>最终 ASR 输出完整文本；</li>
+<li>把文本交给 Runtime 的 <code>SessionRunner</code>；</li>
+<li>等待模型回答后，通过 TTS 输出语音；</li>
+<li>TTS 播放期间抑制麦克风输入，避免“自说自话”。</li>
+</ol>
+<p>这套设计体现了桌面语音助手需要解决的一个关键问题：<strong>语音输入和语音输出会互相干扰</strong>。如果没有 TTS 抑制机制，助手播放自己的回答时，麦克风可能再次捕获声音，导致系统把自己的语音误认为用户输入。</p>
+<h3 id="2-3-语音输出：GPT-SoVITS"><a href="#2-3-语音输出：GPT-SoVITS" class="headerlink" title="2.3 语音输出：GPT-SoVITS"></a>2.3 语音输出：GPT-SoVITS</h3><p>TTS 客户端位于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">app/clients/tts.py</span><br><span class="line">app/streaming/tts_streamer.py</span><br><span class="line">app/audio/player.py</span><br><span class="line">app/audio/tts_gate.py</span><br></pre></td></tr></table></figure>
+
+<p>项目通过 HTTP 调用 GPT-SoVITS 的 <code>/tts</code> 接口，并支持：</p>
+<ul>
+<li>参考音频 <code>ref_audio_path</code>；</li>
+<li>文本分段合成；</li>
+<li>异步合成和分段播放；</li>
+<li>音频缓存；</li>
+<li>播放结束后自动清理输出音频；</li>
+<li>TTS 文本净化，避免把 debug 信息、JSON、代码块直接读出来。</li>
+</ul>
+<p>配置文件中默认：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tts:</span></span><br><span class="line">  <span class="attr">url:</span> <span class="string">&quot;http://127.0.0.1:9880/tts&quot;</span></span><br><span class="line">  <span class="attr">ref_audio_path:</span> <span class="string">&quot;assets/voices/1.wav&quot;</span></span><br><span class="line">  <span class="attr">async_pipeline:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">segmented_playback:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>从工程设计上看，<code>tts_gate.py</code> 是一个很实用的模块。因为 Agent 的文本回答可能包含引用、工具调试信息、代码、表格、链接等内容，这些内容适合显示，但不适合直接朗读。因此项目将“屏幕显示文本”和“TTS 朗读文本”拆开处理。</p>
+<h3 id="2-4-桌面-UI：Popup、CLI-与-WebUI"><a href="#2-4-桌面-UI：Popup、CLI-与-WebUI" class="headerlink" title="2.4 桌面 UI：Popup、CLI 与 WebUI"></a>2.4 桌面 UI：Popup、CLI 与 WebUI</h3><p>项目提供多个交互入口：</p>
+<table>
+<thead>
+<tr>
+<th>入口</th>
+<th>文件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>默认弹窗</td>
+<td><code>main.py</code> → <code>app.popup.launch</code></td>
+<td>默认启动方式，桌面弹窗交互</td>
+</tr>
+<tr>
+<td>CLI</td>
+<td><code>main.py --cli</code> → <code>app.cli.main</code></td>
+<td>命令行交互</td>
+</tr>
+<tr>
+<td>语音服务</td>
+<td><code>main.py --voice</code> → <code>app.voice_input.service.main</code></td>
+<td>独立语音输入服务</td>
+</tr>
+<tr>
+<td>WebUI</td>
+<td><code>webui.py</code> → <code>app.webui.launch</code></td>
+<td>Gradio Web 界面</td>
+</tr>
+<tr>
+<td>桌宠&#x2F;启动器</td>
+<td><code>app/popup/chat_popup.py</code></td>
+<td>与弹窗联动</td>
+</tr>
+</tbody></table>
+<p><code>main.py</code> 是主入口，逻辑非常清晰：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="string">&quot;--voice&quot;</span> <span class="keyword">in</span> args <span class="keyword">or</span> <span class="string">&quot;voice&quot;</span> <span class="keyword">in</span> args:</span><br><span class="line">    <span class="keyword">from</span> app.voice_input.service <span class="keyword">import</span> main</span><br><span class="line"><span class="keyword">elif</span> <span class="string">&quot;--cli&quot;</span> <span class="keyword">in</span> args <span class="keyword">or</span> <span class="string">&quot;cli&quot;</span> <span class="keyword">in</span> args <span class="keyword">or</span> <span class="string">&quot;-c&quot;</span> <span class="keyword">in</span> args:</span><br><span class="line">    <span class="keyword">from</span> app.cli <span class="keyword">import</span> main</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">from</span> app.popup <span class="keyword">import</span> launch</span><br></pre></td></tr></table></figure>
+
+<p>这说明项目的入口设计采用“单主入口，多模式分发”的方式，降低了用户使用门槛。</p>
+<p><code>app/popup/chat_popup.py</code> 则是桌面端体验的核心文件。它负责：</p>
+<ul>
+<li>创建 Tkinter 弹窗；</li>
+<li>初始化 <code>SessionRunner</code>；</li>
+<li>绑定快捷键；</li>
+<li>启动语音服务子进程；</li>
+<li>读取语音服务 JSONL 事件；</li>
+<li>把最终 ASR 文本送入对话流程；</li>
+<li>显示模型回答；</li>
+<li>处理屏幕观察、桌面上下文、主动提醒等交互。</li>
+</ul>
+<p>WebUI 位于 <code>app/webui/app.py</code>，基于 Gradio Blocks 组织界面，包含 Chat、Memory、RAG、Pending、Runtime、Performance、Config、TTS、Logs、Diagnostics、Tasks、Workflow、Screen 等标签页。这更像是开发调试控制台，而不仅仅是聊天页面。</p>
+<h2 id="3-项目目录结构分析"><a href="#3-项目目录结构分析" class="headerlink" title="3. 项目目录结构分析"></a>3. 项目目录结构分析</h2><p>项目目录可以按功能分为以下几层：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">AI_voice_assistant/</span><br><span class="line">├── main.py                    # 主入口：popup / cli / voice 分发</span><br><span class="line">├── webui.py                   # WebUI 启动入口</span><br><span class="line">├── voice_service.py           # 语音服务独立入口</span><br><span class="line">├── config.yaml                # 主配置，include 多个子配置</span><br><span class="line">├── configs/                   # Agent、RAG、TTS、工具、安全、语音等配置</span><br><span class="line">├── app/</span><br><span class="line">│   ├── agent/                 # Agent 决策、规划、工具调用循环</span><br><span class="line">│   ├── runtime/               # SessionRunner、TTS 状态、pending action</span><br><span class="line">│   ├── tools/                 # 工具注册、工具策略、具体工具实现</span><br><span class="line">│   ├── rag/                   # 网页抓取、chunk、rank、evidence</span><br><span class="line">│   ├── search/                # 搜索计划、深度搜索、查询改写</span><br><span class="line">│   ├── voice_input/           # FunASR、声纹验证、VAD、语音输入服务</span><br><span class="line">│   ├── clients/               # LLM、Embedding、Reranker、TTS 客户端</span><br><span class="line">│   ├── popup/                 # 桌面弹窗</span><br><span class="line">│   ├── webui/                 # Gradio WebUI</span><br><span class="line">│   ├── memory/                # 长期记忆模块</span><br><span class="line">│   ├── skills/                # Skill Package 加载与执行</span><br><span class="line">│   ├── screen/                # 屏幕观察与视觉模型调用</span><br><span class="line">│   ├── desktop_context/       # 桌面上下文获取</span><br><span class="line">│   └── workspace/             # 工作区上下文维护</span><br><span class="line">├── workspace/</span><br><span class="line">│   ├── skills/                # 内置技能包</span><br><span class="line">│   ├── memory/                # USER / PROJECT / TASKS / KNOWLEDGE 等记忆文件</span><br><span class="line">│   └── TOOLS.md               # 工具说明与安全策略说明</span><br><span class="line">├── scripts/                   # 诊断、清理、模型启动、声纹管理脚本</span><br><span class="line">├── data/                      # 缓存、会话、记忆、运行状态</span><br><span class="line">├── logs/                      # 日志</span><br><span class="line">├── profiles/                  # 声纹档案</span><br><span class="line">└── assets/voices/             # TTS 参考音频</span><br></pre></td></tr></table></figure>
+
+<p>目录结构体现了几个工程特点：</p>
+<ol>
+<li><strong>配置与逻辑分离</strong>：<code>config.yaml</code> 只做主入口配置，具体配置被拆到 <code>configs/</code>。</li>
+<li><strong>Runtime 与 Agent 解耦</strong>：<code>runtime</code> 负责单轮会话生命周期，<code>agent</code> 负责决策和生成。</li>
+<li><strong>工具系统独立</strong>：<code>tools</code> 不直接散落在 Agent 中，而是通过注册表统一管理。</li>
+<li><strong>RAG 与 Search 分层</strong>：<code>search</code> 负责搜索策略，<code>rag</code> 负责网页抓取、chunk、排序和证据组织。</li>
+<li><strong>Skill Package 独立于代码主干</strong>：<code>workspace/skills</code> 中的技能包可以独立增删，不必修改核心代码。</li>
+</ol>
+<h2 id="4-核心运行流程"><a href="#4-核心运行流程" class="headerlink" title="4. 核心运行流程"></a>4. 核心运行流程</h2><h3 id="4-1-总体流程"><a href="#4-1-总体流程" class="headerlink" title="4.1 总体流程"></a>4.1 总体流程</h3><p>可以将项目运行流程抽象为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">用户输入</span><br><span class="line">  ├── 文本输入：Popup / CLI / WebUI</span><br><span class="line">  └── 语音输入：麦克风 → VAD → 声纹验证 → FunASR</span><br><span class="line">        ↓</span><br><span class="line">SessionRunner.run_user_turn()</span><br><span class="line">        ↓</span><br><span class="line">意图路由 Intent Router</span><br><span class="line">        ↓</span><br><span class="line">┌───────────────────────────────┐</span><br><span class="line">│ 1. Direct Tool Fast Path       │  确定性任务：时间、天气、窗口、简单搜索等</span><br><span class="line">│ 2. Skill Workflow Engine       │  命中技能包时执行工作流</span><br><span class="line">│ 3. LLM Agent Loop              │  复杂任务：规划、工具调用、反思、回答</span><br><span class="line">└───────────────────────────────┘</span><br><span class="line">        ↓</span><br><span class="line">Tool Registry 执行工具 / RAG / Memory / Screen / Desktop</span><br><span class="line">        ↓</span><br><span class="line">Final Renderer 生成显示回答和 TTS 回答</span><br><span class="line">        ↓</span><br><span class="line">Popup / CLI / WebUI 显示</span><br><span class="line">        ↓</span><br><span class="line">GPT-SoVITS 语音播放</span><br></pre></td></tr></table></figure>
+
+<p>该流程的关键设计是：<strong>所有输入最后都归一到 <code>SessionRunner.run_user_turn()</code></strong>。也就是说，无论用户是打字、语音、WebUI 输入，还是桌面弹窗输入，后续都复用同一套 Runtime。</p>
+<h3 id="4-2-SessionRunner：单轮会话中枢"><a href="#4-2-SessionRunner：单轮会话中枢" class="headerlink" title="4.2 SessionRunner：单轮会话中枢"></a>4.2 SessionRunner：单轮会话中枢</h3><p><code>app/runtime/session_runner.py</code> 是项目的运行中枢。它将一次用户输入封装为一个完整的生命周期：</p>
+<ol>
+<li>检查是否是对 pending action 的确认或取消；</li>
+<li>记录用户输入；</li>
+<li>调用意图路由器判断请求类型；</li>
+<li>根据配置决定是否走 Direct Tool Fast Path；</li>
+<li>检索长期记忆；</li>
+<li>调用 <code>run_agent()</code> 执行 Agent 推理；</li>
+<li>渲染最终回复；</li>
+<li>记录行为记忆；</li>
+<li>更新 workspace 智能上下文；</li>
+<li>写入会话；</li>
+<li>进行记忆门控、分类与存储；</li>
+<li>调度或播放 TTS；</li>
+<li>返回 <code>TurnResult</code>。</li>
+</ol>
+<p><code>TurnResult</code> 中包含：</p>
+<ul>
+<li><code>reply</code>：用于显示的回答；</li>
+<li><code>tts_reply</code>：用于语音播放的回答；</li>
+<li><code>debug</code>：调试信息；</li>
+<li><code>tool_calls</code>：工具调用记录；</li>
+<li><code>rag_evidence</code>：RAG 证据；</li>
+<li><code>memory_updates</code>：记忆更新；</li>
+<li><code>pending_actions</code>：待用户确认的操作；</li>
+<li><code>perf</code>：性能统计；</li>
+<li><code>tts_status</code>：TTS 状态。</li>
+</ul>
+<p>这个结构说明项目已经把“用户看到的内容”“TTS 朗读的内容”“调试信息”“工具执行过程”做了分离，这对于一个长期运行的桌面助手非常重要。</p>
+<h3 id="4-3-Intent-Router：意图识别与快速路径"><a href="#4-3-Intent-Router：意图识别与快速路径" class="headerlink" title="4.3 Intent Router：意图识别与快速路径"></a>4.3 Intent Router：意图识别与快速路径</h3><p><code>app/agent/intent_router.py</code> 负责根据用户输入判断请求类型，例如：</p>
+<ul>
+<li>记忆创建、更新、删除；</li>
+<li>技能管理；</li>
+<li>屏幕观察；</li>
+<li>桌面窗口操作；</li>
+<li>搜索；</li>
+<li>天气；</li>
+<li>系统信息；</li>
+<li>一般聊天。</li>
+</ul>
+<p>对于一些确定性任务，项目会绕过完整的 LLM Agent Loop，直接进入工具快速路径。这样做有两个好处：</p>
+<ol>
+<li>减少大模型调用次数，提高响应速度；</li>
+<li>降低模型误判工具参数的概率。</li>
+</ol>
+<p>例如“现在几点”“查一下天气”“打开观察屏幕”等任务，不一定需要大模型多轮思考，路由器可以直接交给对应工具。</p>
+<h3 id="4-4-Agent-Loop：复杂任务的规划与工具调用"><a href="#4-4-Agent-Loop：复杂任务的规划与工具调用" class="headerlink" title="4.4 Agent Loop：复杂任务的规划与工具调用"></a>4.4 Agent Loop：复杂任务的规划与工具调用</h3><p>复杂任务会进入 <code>app/agent/round_runner.py</code> 中的 <code>run_agent()</code>。其逻辑可以概括为：</p>
+<ol>
+<li>推断当前话题；</li>
+<li>构建上下文；</li>
+<li>再次路由意图；</li>
+<li>判断是否需要 Direct Tool；</li>
+<li>判断是否可以由 Skill Workflow Engine 执行；</li>
+<li>如果任务较复杂，生成动态计划；</li>
+<li>进入 LLM Action Loop；</li>
+<li>解析模型输出的工具调用 JSON；</li>
+<li>调用 Tool Registry 执行工具；</li>
+<li>观察工具结果；</li>
+<li>根据结果反思或重规划；</li>
+<li>生成最终回答。</li>
+</ol>
+<p>它不是简单的一次性 <code>chat_completion</code>，而是一个包含“计划—行动—观察—反思—回答”的 Agent 循环。</p>
+<p>配置文件中也限制了 Agent 的复杂度，例如：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">agent:</span></span><br><span class="line">  <span class="attr">max_steps:</span> <span class="number">4</span></span><br><span class="line">  <span class="attr">max_tool_calls:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">max_tool_retries:</span> <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>这可以避免 Agent 在工具调用中无限循环。</p>
+<h2 id="5-Tool-Registry-与安全策略"><a href="#5-Tool-Registry-与安全策略" class="headerlink" title="5. Tool Registry 与安全策略"></a>5. Tool Registry 与安全策略</h2><h3 id="5-1-工具注册机制"><a href="#5-1-工具注册机制" class="headerlink" title="5.1 工具注册机制"></a>5.1 工具注册机制</h3><p>项目中的工具系统位于 <code>app/tools</code>。核心文件包括：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">app/tools/core/schema.py</span><br><span class="line">app/tools/core/registry.py</span><br><span class="line">app/tools/core/policy.py</span><br><span class="line">app/tools/core/aliases.py</span><br><span class="line">app/tools/defaults.py</span><br><span class="line">configs/tools.yaml</span><br></pre></td></tr></table></figure>
+
+<p>工具注册大致包含以下信息：</p>
+<ul>
+<li>工具名称；</li>
+<li>工具描述；</li>
+<li>参数 schema；</li>
+<li>执行函数 handler；</li>
+<li>风险等级；</li>
+<li>是否默认启用；</li>
+<li>是否允许模型可见；</li>
+<li>是否需要用户确认；</li>
+<li>超时时间；</li>
+<li>输出长度限制。</li>
+</ul>
+<p><code>ToolRegistry</code> 的职责不仅是“调用工具”，还包括：</p>
+<ul>
+<li>判断工具是否启用；</li>
+<li>判断模型是否可见；</li>
+<li>修复或校验工具参数；</li>
+<li>应用工具别名；</li>
+<li>判断是否需要用户确认；</li>
+<li>处理高风险操作；</li>
+<li>控制工具超时；</li>
+<li>压缩工具结果；</li>
+<li>记录工具调用日志。</li>
+</ul>
+<h3 id="5-2-工具安全策略"><a href="#5-2-工具安全策略" class="headerlink" title="5.2 工具安全策略"></a>5.2 工具安全策略</h3><p><code>configs/tools.yaml</code> 中配置了工具权限。项目将工具分为低风险、中风险、高风险，并对高风险工具要求用户确认。</p>
+<p>例如：</p>
+<ul>
+<li>文件写入、文件编辑、补丁应用需要确认；</li>
+<li>任务删除需要确认；</li>
+<li>命令执行默认禁用；</li>
+<li>消息发送默认禁用；</li>
+<li><code>code_execution</code> 默认禁用；</li>
+<li>屏幕观察需要显式开启；</li>
+<li>私密数据清理脚本独立提供。</li>
+</ul>
+<p><code>app/tools/runtime/runtime_tools.py</code> 中的命令执行工具使用 <code>subprocess.run(..., shell=True)</code>，这本身是高风险设计。但项目通过如下方式降低风险：</p>
+<ol>
+<li>工具默认禁用；</li>
+<li>风险等级为 high；</li>
+<li>默认需要用户确认；</li>
+<li>不在常规模型可见工具中暴露。</li>
+</ol>
+<p>如果二次开发时要启用命令执行，建议进一步加入：</p>
+<ul>
+<li>命令白名单；</li>
+<li>工作目录限制；</li>
+<li>最大输出限制；</li>
+<li>禁止网络敏感命令；</li>
+<li>禁止删除类命令；</li>
+<li>沙箱执行环境；</li>
+<li>对执行命令进行二次确认展示。</li>
+</ul>
+<h2 id="6-Search-与-RAG-机制分析"><a href="#6-Search-与-RAG-机制分析" class="headerlink" title="6. Search 与 RAG 机制分析"></a>6. Search 与 RAG 机制分析</h2><h3 id="6-1-搜索入口"><a href="#6-1-搜索入口" class="headerlink" title="6.1 搜索入口"></a>6.1 搜索入口</h3><p>搜索统一入口位于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">app/search/engine.py</span><br><span class="line">app/tools/search/__init__.py</span><br></pre></td></tr></table></figure>
+
+<p>项目没有保留多个分散的搜索工具，而是提供统一 <code>search</code> 工具。这个工具内部支持：</p>
+<ul>
+<li>Query rewriting；</li>
+<li>搜索计划；</li>
+<li>SearXNG；</li>
+<li>DDGS；</li>
+<li>网页抓取；</li>
+<li>文档分块；</li>
+<li>BM25；</li>
+<li>Embedding；</li>
+<li>Reranker；</li>
+<li>证据质量判断；</li>
+<li>二次搜索；</li>
+<li>回答缓存。</li>
+</ul>
+<p>这是该项目比较工程化的部分。它不是把搜索结果 snippet 直接丢给模型，而是尽量构建“可引用、可排序、可判断质量”的证据链。</p>
+<h3 id="6-2-RAG-数据流"><a href="#6-2-RAG-数据流" class="headerlink" title="6.2 RAG 数据流"></a>6.2 RAG 数据流</h3><p>RAG 过程大致如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">用户问题</span><br><span class="line">  ↓</span><br><span class="line">查询改写 / 查询包生成</span><br><span class="line">  ↓</span><br><span class="line">SearXNG / DDGS 获取候选 URL</span><br><span class="line">  ↓</span><br><span class="line">网页抓取</span><br><span class="line">  ↓</span><br><span class="line">正文抽取与清洗</span><br><span class="line">  ↓</span><br><span class="line">文本分块</span><br><span class="line">  ↓</span><br><span class="line">BM25 初筛</span><br><span class="line">  ↓</span><br><span class="line">Embedding 向量召回</span><br><span class="line">  ↓</span><br><span class="line">Reranker 重排序</span><br><span class="line">  ↓</span><br><span class="line">证据质量判断</span><br><span class="line">  ↓</span><br><span class="line">必要时二次搜索</span><br><span class="line">  ↓</span><br><span class="line">将证据格式化加入 Prompt</span><br><span class="line">  ↓</span><br><span class="line">模型基于证据生成回答</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>app/rag/ranker.py</code> 是排序核心。它会综合：</p>
+<ul>
+<li>BM25 分数；</li>
+<li>Embedding 相似度；</li>
+<li>Reranker 分数；</li>
+<li>来源质量；</li>
+<li>片段质量；</li>
+<li>snippet 惩罚；</li>
+<li>证据多样性。</li>
+</ul>
+<p>最终会给证据分配类似 <code>S1</code>、<code>S2</code> 的来源编号，再交给模型。</p>
+<h3 id="6-3-搜索设计优点"><a href="#6-3-搜索设计优点" class="headerlink" title="6.3 搜索设计优点"></a>6.3 搜索设计优点</h3><p>该搜索系统的优点是：</p>
+<ol>
+<li><strong>层次清晰</strong>：搜索发现 URL，RAG 负责证据加工。</li>
+<li><strong>具备降级能力</strong>：Embedding 或 Reranker 不可用时，可回退到 BM25。</li>
+<li><strong>避免纯 snippet 回答</strong>：通过网页抓取和 chunk 提高证据质量。</li>
+<li><strong>支持二次搜索</strong>：当证据不足时继续补充。</li>
+<li><strong>支持缓存</strong>：降低重复搜索成本。</li>
+</ol>
+<h3 id="6-4-搜索设计不足"><a href="#6-4-搜索设计不足" class="headerlink" title="6.4 搜索设计不足"></a>6.4 搜索设计不足</h3><p>可能的问题包括：</p>
+<ol>
+<li>依赖外部网络和搜索服务，稳定性受环境影响；</li>
+<li>SearXNG、DDGS、Embedding、Reranker 任一服务异常都可能影响效果；</li>
+<li>网页抓取不支持复杂 JS 渲染页面；</li>
+<li>证据质量判断仍可能受模型能力影响；</li>
+<li>缓存策略需要注意过期时间，避免回答过时信息。</li>
+</ol>
+<h2 id="7-Memory-长期记忆模块"><a href="#7-Memory-长期记忆模块" class="headerlink" title="7. Memory 长期记忆模块"></a>7. Memory 长期记忆模块</h2><p>长期记忆模块位于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">app/memory/</span><br><span class="line">workspace/memory/</span><br><span class="line">data/memory/</span><br></pre></td></tr></table></figure>
+
+<p>主要文件包括：</p>
+<ul>
+<li><code>manager.py</code>：记忆读写；</li>
+<li><code>classifier.py</code>：记忆分类；</li>
+<li><code>gate.py</code>：记忆写入门控；</li>
+<li><code>conflict_resolver.py</code>：冲突处理；</li>
+<li><code>metadata_generator.py</code>：记忆元数据生成；</li>
+<li><code>memory_router.py</code>：记忆相关意图路由。</li>
+</ul>
+<p>从配置看，项目支持：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">runtime:</span></span><br><span class="line">  <span class="attr">enable_memory:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">memory_update_mode:</span> <span class="string">&quot;agent_gate&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这表示它不会盲目把所有聊天内容写进长期记忆，而是经过门控和分类后再写入。</p>
+<p>工作区中还存在结构化记忆文件：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">workspace/memory/USER.md</span><br><span class="line">workspace/memory/PROJECT.md</span><br><span class="line">workspace/memory/TASKS.md</span><br><span class="line">workspace/memory/KNOWLEDGE.md</span><br></pre></td></tr></table></figure>
+
+<p>这种设计适合桌面助手长期使用：</p>
+<ul>
+<li><code>USER.md</code> 保存用户偏好；</li>
+<li><code>PROJECT.md</code> 保存当前项目背景；</li>
+<li><code>TASKS.md</code> 保存任务状态；</li>
+<li><code>KNOWLEDGE.md</code> 保存长期知识。</li>
+</ul>
+<p>不过，记忆系统也带来隐私风险。发布博客或开源示例时，应清理 <code>data/memory</code>、<code>workspace/memory</code>、<code>logs</code>、<code>data/sessions</code> 等目录，避免泄露真实聊天内容。</p>
+<h2 id="8-Skill-Package-机制"><a href="#8-Skill-Package-机制" class="headerlink" title="8. Skill Package 机制"></a>8. Skill Package 机制</h2><p>Skill Package 是项目很重要的扩展机制。目录位于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">workspace/skills/</span><br></pre></td></tr></table></figure>
+
+<p>本次源码中包含多个内置 Skill，例如：</p>
+<ul>
+<li><code>blog_writer</code>：博客写作；</li>
+<li><code>browser_video</code>：浏览器视频相关；</li>
+<li><code>github_research</code>：GitHub 项目研究；</li>
+<li><code>gptsovits</code>：语音合成相关；</li>
+<li><code>healthcheck</code>：系统健康检查；</li>
+<li><code>local_llm</code>：本地模型；</li>
+<li><code>memory</code>：记忆管理；</li>
+<li><code>model_deployment</code>：模型部署；</li>
+<li><code>openclaw</code>：OpenClaw 集成；</li>
+<li><code>paper_assistant</code>：论文助手；</li>
+<li><code>planning</code>：任务规划；</li>
+<li><code>ppt_master</code>：PPT 生成相关；</li>
+<li><code>project_refactor</code>：项目重构；</li>
+<li><code>rag_search</code>：RAG 搜索；</li>
+<li><code>screen_observer</code>：屏幕观察；</li>
+<li><code>search</code>：搜索；</li>
+<li><code>summarize</code>：总结；</li>
+<li><code>tts</code>：语音输出；</li>
+<li><code>weather</code>：天气；</li>
+<li><code>workspace</code>：工作区管理。</li>
+</ul>
+<p>每个 Skill 一般可以包含：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SKILL.md</span><br><span class="line">workflow.yaml</span><br><span class="line">scripts/</span><br><span class="line">assets/</span><br></pre></td></tr></table></figure>
+
+<p><code>app/skills/loader.py</code> 负责读取 Skill 元信息；<code>app/skills/selector.py</code> 负责根据用户意图选择合适 Skill；<code>app/skills/executor.py</code> 负责执行工作流。</p>
+<p>Skill 工作流支持：</p>
+<ul>
+<li>图结构工作流；</li>
+<li>并行工具调用；</li>
+<li>子工作流；</li>
+<li>条件分支；</li>
+<li>运行状态持久化；</li>
+<li>中断后恢复；</li>
+<li>用户确认后继续执行。</li>
+</ul>
+<p>这说明项目并不满足于“LLM 随机决定调用哪个工具”，而是希望通过可配置工作流，把常见任务变成可复用、可维护的技能包。</p>
+<h2 id="9-屏幕观察与桌面上下文"><a href="#9-屏幕观察与桌面上下文" class="headerlink" title="9. 屏幕观察与桌面上下文"></a>9. 屏幕观察与桌面上下文</h2><p>屏幕观察相关代码位于：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">app/screen/</span><br><span class="line">app/desktop_context/</span><br><span class="line">app/browser_context/</span><br></pre></td></tr></table></figure>
+
+<p>配置文件 <code>configs/screen.yaml</code> 中可以看到：</p>
+<ul>
+<li>屏幕能力默认启用；</li>
+<li>视觉模型 VLM 默认可配置；</li>
+<li>截图缓存位于 <code>data/cache/screen</code>；</li>
+<li>保留最近若干张截图；</li>
+<li>屏幕观察需要显式开启；</li>
+<li>默认不自动保存调试截图；</li>
+<li>敏感文本可做脱敏；</li>
+<li>禁止自动发送消息。</li>
+</ul>
+<p>这部分设计非常重要。桌面 Agent 一旦具备屏幕感知，就可能接触聊天窗口、网页、文件路径、账号信息等敏感内容。因此项目在配置上提供了隐私保护策略：显式启动、限制缓存、脱敏、禁止自动发送消息。</p>
+<p>从功能上看，屏幕模块主要支持：</p>
+<ol>
+<li>截图；</li>
+<li>窗口信息读取；</li>
+<li>屏幕状态缓存；</li>
+<li>调用 VLM 分析屏幕内容；</li>
+<li>主动观察与状态解释。</li>
+</ol>
+<p>这让助手可以回答类似：</p>
+<ul>
+<li>“你看看我现在屏幕上这个报错是什么意思？”</li>
+<li>“帮我总结当前网页内容。”</li>
+<li>“我现在打开的是哪个应用？”</li>
+</ul>
+<p>但实际使用时，需要谨慎控制权限和日志保存。</p>
+<h2 id="10-配置系统设计"><a href="#10-配置系统设计" class="headerlink" title="10. 配置系统设计"></a>10. 配置系统设计</h2><p>项目配置入口为 <code>config.yaml</code>，并通过 <code>include_configs</code> 引入多个子配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">include_configs:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">configs/agent.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">configs/memory.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">configs/workspace.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">configs/environment.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">configs/skills.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">configs/tts.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">configs/rag.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">configs/tools.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">configs/screen.yaml</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">configs/voice_input.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p><code>app/config.py</code> 中实现了配置加载逻辑：</p>
+<ol>
+<li>读取主配置；</li>
+<li>读取 <code>include_configs</code>；</li>
+<li>深度合并 include 配置；</li>
+<li>再用主配置覆盖 include 配置；</li>
+<li>创建运行目录；</li>
+<li>提供 <code>get_config()</code>、<code>get_llm_api_key()</code> 等接口。</li>
+</ol>
+<p>这种配置拆分方式的优点是：</p>
+<ul>
+<li>不同能力独立配置，便于维护；</li>
+<li>主配置保留全局覆盖能力；</li>
+<li>适合本地用户按需打开&#x2F;关闭能力；</li>
+<li>便于排查问题。</li>
+</ul>
+<p>潜在问题是：当前 <code>get_llm_api_key()</code> 的逻辑中，内联 <code>api_key</code> 优先于环境变量。对于纯本地模型这没有问题，因为 <code>api_key: local</code> 只是占位；但如果未来接入真实远程 API，更推荐环境变量优先，或者移除配置文件中的明文 key。</p>
+<h2 id="11-部署流程"><a href="#11-部署流程" class="headerlink" title="11. 部署流程"></a>11. 部署流程</h2><p>以下流程适合在博客中作为“复现指南”。</p>
+<h3 id="11-1-环境准备"><a href="#11-1-环境准备" class="headerlink" title="11.1 环境准备"></a>11.1 环境准备</h3><p>推荐环境：</p>
+<ul>
+<li>Windows 10 &#x2F; Windows 11；</li>
+<li>Python 3.10 或 3.11；</li>
+<li>NVIDIA GPU；</li>
+<li>CUDA 可用；</li>
+<li>本地 <code>llama.cpp</code>；</li>
+<li>FunASR &#x2F; ModelScope；</li>
+<li>GPT-SoVITS；</li>
+<li>可选：SearXNG、Embedding 模型、Reranker 模型。</li>
+</ul>
+<h3 id="11-2-获取项目"><a href="#11-2-获取项目" class="headerlink" title="11.2 获取项目"></a>11.2 获取项目</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/star031104/AI_voice_assistant.git</span><br><span class="line"><span class="built_in">cd</span> AI_voice_assistant</span><br></pre></td></tr></table></figure>
+
+<p>或者直接解压项目压缩包。</p>
+<h3 id="11-3-创建-Python-环境"><a href="#11-3-创建-Python-环境" class="headerlink" title="11.3 创建 Python 环境"></a>11.3 创建 Python 环境</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">conda create -n ai_voice_assistant python=3.10 -y</span><br><span class="line">conda activate ai_voice_assistant</span><br><span class="line">pip install -r requirements.txt</span><br></pre></td></tr></table></figure>
+
+<p>如果某些音频库在 Windows 下安装失败，可以优先检查：</p>
+<ul>
+<li><code>sounddevice</code>；</li>
+<li><code>pyaudio</code> 或系统音频依赖；</li>
+<li><code>playsound</code>；</li>
+<li><code>torch</code> CUDA 版本；</li>
+<li>ModelScope&#x2F;FunASR 依赖。</li>
+</ul>
+<h3 id="11-4-启动本地大模型服务"><a href="#11-4-启动本地大模型服务" class="headerlink" title="11.4 启动本地大模型服务"></a>11.4 启动本地大模型服务</h3><p>项目提供了 <code>scripts/local_models/</code> 下的 <code>.bat</code> 脚本。使用前需要修改：</p>
+<ul>
+<li><code>llama.cpp</code> 路径；</li>
+<li>GGUF 模型文件路径；</li>
+<li>GPU offload 参数；</li>
+<li>上下文长度；</li>
+<li>线程数；</li>
+<li>host 与 port。</li>
+</ul>
+<p>示例逻辑如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">llama-server \</span><br><span class="line">  -m path/to/model.gguf \</span><br><span class="line">  --host 127.0.0.1 \</span><br><span class="line">  --port 8000 \</span><br><span class="line">  -c 8192 \</span><br><span class="line">  -t 10 \</span><br><span class="line">  -ngl 99 \</span><br><span class="line">  --jinja</span><br></pre></td></tr></table></figure>
+
+<p>如果只是个人本机使用，建议优先绑定：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--host 127.0.0.1</span><br></pre></td></tr></table></figure>
+
+<p>不要随意使用 <code>0.0.0.0</code>，否则同一局域网内的其他设备可能访问你的模型服务。</p>
+<h3 id="12-5-启动-GPT-SoVITS"><a href="#12-5-启动-GPT-SoVITS" class="headerlink" title="12.5 启动 GPT-SoVITS"></a>12.5 启动 GPT-SoVITS</h3><p>确保 GPT-SoVITS 的 HTTP 服务监听：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1:9880/tts</span><br></pre></td></tr></table></figure>
+
+<p>然后在 <code>configs/tts.yaml</code> 中检查：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">url:</span> <span class="string">&quot;http://127.0.0.1:9880/tts&quot;</span></span><br><span class="line"><span class="attr">ref_audio_path:</span> <span class="string">&quot;assets/voices/1.wav&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="11-6-配置搜索与-RAG"><a href="#11-6-配置搜索与-RAG" class="headerlink" title="11.6 配置搜索与 RAG"></a>11.6 配置搜索与 RAG</h3><p>如果要使用搜索&#x2F;RAG，建议启动或配置：</p>
+<ul>
+<li>SearXNG：<code>http://127.0.0.1:8080</code>；</li>
+<li>Embedding 服务：<code>http://127.0.0.1:8010/v1</code>；</li>
+<li>Reranker 服务：<code>http://127.0.0.1:8011/v1</code>。</li>
+</ul>
+<p>如果暂时不启动这些服务，项目仍可部分运行，但搜索质量和 RAG 效果会下降。</p>
+<h3 id="11-7-启动项目"><a href="#11-7-启动项目" class="headerlink" title="11.7 启动项目"></a>11.7 启动项目</h3><p>默认弹窗模式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python main.py</span><br></pre></td></tr></table></figure>
+
+<p>CLI 模式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python main.py --cli</span><br></pre></td></tr></table></figure>
+
+<p>语音服务模式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python main.py --voice</span><br></pre></td></tr></table></figure>
+
+<p>WebUI 模式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python webui.py</span><br></pre></td></tr></table></figure>
+
+<h3 id="11-8-运行诊断"><a href="#11-8-运行诊断" class="headerlink" title="11.8 运行诊断"></a>11.8 运行诊断</h3><p>项目提供了多个诊断脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">python scripts/doctor.py</span><br><span class="line">python scripts/check_local_search_stack.py</span><br><span class="line">python scripts/check_tool_policy.py</span><br></pre></td></tr></table></figure>
+
+<p>建议部署后优先执行这些脚本，检查：</p>
+<ul>
+<li>配置是否正确；</li>
+<li>搜索服务是否可用；</li>
+<li>LLM 端口是否可用；</li>
+<li>工具策略是否符合预期；</li>
+<li>RAG 依赖是否完整。</li>
+</ul>
+<h2 id="12-代码质量评价"><a href="#12-代码质量评价" class="headerlink" title="12. 代码质量评价"></a>12. 代码质量评价</h2><h3 id="12-1-优点"><a href="#12-1-优点" class="headerlink" title="12.1 优点"></a>12.1 优点</h3><h4 id="1-架构拆分较清晰"><a href="#1-架构拆分较清晰" class="headerlink" title="1. 架构拆分较清晰"></a>1. 架构拆分较清晰</h4><p>项目将 Agent、Runtime、Tools、RAG、Voice、TTS、Memory、Skill、Screen 等模块拆开，避免了所有逻辑堆在一个脚本中。</p>
+<h4 id="2-多入口统一到同一-Runtime"><a href="#2-多入口统一到同一-Runtime" class="headerlink" title="2. 多入口统一到同一 Runtime"></a>2. 多入口统一到同一 Runtime</h4><p>Popup、CLI、WebUI、Voice 最终都进入 <code>SessionRunner</code>，这让核心逻辑复用度较高。</p>
+<h4 id="3-工具系统有安全意识"><a href="#3-工具系统有安全意识" class="headerlink" title="3. 工具系统有安全意识"></a>3. 工具系统有安全意识</h4><p>高风险工具不是直接暴露给模型，而是通过策略文件控制，并且需要用户确认。</p>
+<h4 id="4-Search-RAG-设计比较完整"><a href="#4-Search-RAG-设计比较完整" class="headerlink" title="4. Search&#x2F;RAG 设计比较完整"></a>4. Search&#x2F;RAG 设计比较完整</h4><p>具备搜索计划、查询改写、网页抓取、分块、BM25、Embedding、Reranker、证据质量判断和二次搜索，不是简单搜索 API 拼接。</p>
+<h4 id="5-语音链路考虑了真实使用问题"><a href="#5-语音链路考虑了真实使用问题" class="headerlink" title="5. 语音链路考虑了真实使用问题"></a>5. 语音链路考虑了真实使用问题</h4><p>项目考虑了 VAD、声纹验证、TTS 抑制、barge-in、流式 partial、最终识别等问题，这些都是语音助手从 Demo 走向可用所必须解决的问题。</p>
+<h4 id="6-Skill-Package-具备扩展潜力"><a href="#6-Skill-Package-具备扩展潜力" class="headerlink" title="6. Skill Package 具备扩展潜力"></a>6. Skill Package 具备扩展潜力</h4><p>把常见任务封装为技能包，可以减少核心代码膨胀，也便于后续新增“博客写作”“论文助手”“PPT 生成”等能力。</p>
+<h3 id="12-2-不足"><a href="#12-2-不足" class="headerlink" title="12.2 不足"></a>12.2 不足</h3><h4 id="1-部署链路较重"><a href="#1-部署链路较重" class="headerlink" title="1. 部署链路较重"></a>1. 部署链路较重</h4><p>完整运行需要 LLM、VLM、Embedding、Reranker、GPT-SoVITS、SearXNG、FunASR 等多个组件，对新手不友好。</p>
+<h4 id="2-脚本中存在本地硬编码路径"><a href="#2-脚本中存在本地硬编码路径" class="headerlink" title="2. 脚本中存在本地硬编码路径"></a>2. 脚本中存在本地硬编码路径</h4><p><code>scripts/local_models/*.bat</code> 中包含本地模型路径和 llama.cpp 路径。其他用户部署时必须手动修改。</p>
+<h4 id="3-自动化测试不足"><a href="#3-自动化测试不足" class="headerlink" title="3. 自动化测试不足"></a>3. 自动化测试不足</h4><p>本次源码中未发现独立 <code>tests/</code> 测试目录。虽然 <code>compileall</code> 可以通过，但仍建议补充单元测试和集成测试。</p>
+<h4 id="4-命令执行工具需要更严格保护"><a href="#4-命令执行工具需要更严格保护" class="headerlink" title="4. 命令执行工具需要更严格保护"></a>4. 命令执行工具需要更严格保护</h4><p>虽然命令执行工具默认禁用且需要确认，但如果未来启用，建议增加白名单、沙箱、危险命令拦截。</p>
+<h4 id="5-配置文件中的模型名不适合公开演示"><a href="#5-配置文件中的模型名不适合公开演示" class="headerlink" title="5. 配置文件中的模型名不适合公开演示"></a>5. 配置文件中的模型名不适合公开演示</h4><p>默认模型名包含 <code>Uncensored</code> 和 <code>Aggressive</code>，博客发布时建议说明这是本地实验模型，并建议生产或公开演示换成更稳妥的对齐模型。</p>
+<h4 id="6-隐私数据清理必须重视"><a href="#6-隐私数据清理必须重视" class="headerlink" title="6. 隐私数据清理必须重视"></a>6. 隐私数据清理必须重视</h4><p>桌面上下文、屏幕观察、语音输入、聊天日志、长期记忆都可能包含隐私信息。发布项目截图、日志、压缩包前应执行清理。</p>
+<h2 id="13-推荐改进路线"><a href="#13-推荐改进路线" class="headerlink" title="13. 推荐改进路线"></a>13. 推荐改进路线</h2><h3 id="13-1-第一阶段：提升可部署性"><a href="#13-1-第一阶段：提升可部署性" class="headerlink" title="13.1 第一阶段：提升可部署性"></a>13.1 第一阶段：提升可部署性</h3><ul>
+<li>提供 <code>.env.example</code>；</li>
+<li>提供 <code>config.example.yaml</code>；</li>
+<li>将本地硬编码路径改为环境变量；</li>
+<li>提供一键检查脚本；</li>
+<li>将模型服务启动命令改成模板形式；</li>
+<li>README 中增加“最小启动模式”。</li>
+</ul>
+<p>建议最小启动模式只依赖：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Python Runtime + 主 LLM + CLI</span><br></pre></td></tr></table></figure>
+
+<p>然后再逐步开启：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TTS → Voice Input → Search/RAG → Screen → Skill Workflow</span><br></pre></td></tr></table></figure>
+
+<h3 id="13-2-第二阶段：补充测试体系"><a href="#13-2-第二阶段：补充测试体系" class="headerlink" title="13.2 第二阶段：补充测试体系"></a>13.2 第二阶段：补充测试体系</h3><p>建议新增：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">tests/</span><br><span class="line">├── test_config_loader.py</span><br><span class="line">├── test_intent_router.py</span><br><span class="line">├── test_tool_policy.py</span><br><span class="line">├── test_tool_aliases.py</span><br><span class="line">├── test_tts_gate.py</span><br><span class="line">├── test_search_fallback.py</span><br><span class="line">├── test_memory_gate.py</span><br><span class="line">└── test_skill_loader.py</span><br></pre></td></tr></table></figure>
+
+<p>重点测试：</p>
+<ul>
+<li>配置合并是否正确；</li>
+<li>工具策略优先级是否正确；</li>
+<li>高风险工具是否被拦截；</li>
+<li>TTS 是否过滤 debug 文本；</li>
+<li>搜索依赖缺失时是否能降级；</li>
+<li>Skill 是否能正确加载；</li>
+<li>记忆是否不会误写入。</li>
+</ul>
+<h3 id="13-3-第三阶段：提升安全性"><a href="#13-3-第三阶段：提升安全性" class="headerlink" title="13.3 第三阶段：提升安全性"></a>13.3 第三阶段：提升安全性</h3><p>建议：</p>
+<ul>
+<li>命令执行工具加入命令白名单；</li>
+<li>文件操作限制到 workspace；</li>
+<li>屏幕观察增加醒目状态提示；</li>
+<li>日志默认脱敏；</li>
+<li>远程 API key 必须走环境变量；</li>
+<li>模型服务默认绑定 <code>127.0.0.1</code>；</li>
+<li>提供“隐私清理模式”。</li>
+</ul>
+<h3 id="13-4-第四阶段：优化用户体验"><a href="#13-4-第四阶段：优化用户体验" class="headerlink" title="13.4 第四阶段：优化用户体验"></a>13.4 第四阶段：优化用户体验</h3><p>可以继续改进：</p>
+<ul>
+<li>首次启动向导；</li>
+<li>模型服务状态面板；</li>
+<li>麦克风设备选择 UI；</li>
+<li>声纹注册向导；</li>
+<li>TTS 参考音频管理；</li>
+<li>Skill Package 可视化管理；</li>
+<li>RAG 搜索过程可视化；</li>
+<li>工具确认弹窗优化。</li>
+</ul>
+</article><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/2.png" data-sites="wechat,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/05/09/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-PPT-Master/" title="PPT-Master"><img class="cover" src="/img/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PPT-Master</div></div><div class="info-2"><div class="info-item-1">PPT-Master一、项目介绍随着大语言模型的发展，AI 自动生成 PPT 已经成为一种非常热门的应用方向。 传统 AI PPT 工具虽然可以快速生成内容，但大多数都存在一个问题： “生成后无法继续编辑”很多工具最终导出的：  实际上只是截图 或者整页图片 无法修改布局 无法编辑图形 无法继续二次设计  而 PPT-Master 最大的特点： 就是： “生成真正可编辑的 PPT”项目地址： https://github.com/hugohe3/ppt-master 二、PPT-Master 能干什么？PPT-Master 本质上： 是一个： 1LLM + SVG + PowerPoint DrawingML  组合而成的 AI PPT 自动生成系统。 它不仅能：  自动生成 PPT 内容 自动设计页面布局 自动生成图表 自动生成 SVG 页面  还可以： 将 SVG 转换为真正可编辑的 PPTX 文件最终生成的 PPT： 支持：  文本编辑 图形编辑 元素拖动 配色修改 动画 转场  而不是单纯的图片。 三、项目核心原理很多人以为： PPT-Master 是： 1AI → 直接...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">浅梦</div><div class="author-info-description">我的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/star031104" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="https://space.bilibili.com/435320784" target="_blank" title="Bilibili"><i class="fas fa-tv" style="color: #fb7299;"></i></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B5%85%E6%A2%A6-AI-%E5%8A%A9%E6%89%8B-Runtime-%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A%EF%BC%9A%E4%B8%80%E4%B8%AA%E6%9C%AC%E5%9C%B0%E8%AF%AD%E9%9F%B3%E6%A1%8C%E9%9D%A2-Agent-%E7%9A%84%E5%B7%A5%E7%A8%8B%E5%8C%96%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.</span> <span class="toc-text">浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%BF%B0"><span class="toc-number">1.1.</span> <span class="toc-text">1. 项目概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%8A%80%E6%9C%AF%E6%A0%88%E5%88%86%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">2. 技术栈分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%9C%AC%E5%9C%B0%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 本地大模型服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%AF%AD%E9%9F%B3%E8%BE%93%E5%85%A5%EF%BC%9AFunASR"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 语音输入：FunASR</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E8%AF%AD%E9%9F%B3%E8%BE%93%E5%87%BA%EF%BC%9AGPT-SoVITS"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.3 语音输出：GPT-SoVITS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%A1%8C%E9%9D%A2-UI%EF%BC%9APopup%E3%80%81CLI-%E4%B8%8E-WebUI"><span class="toc-number">1.2.4.</span> <span class="toc-text">2.4 桌面 UI：Popup、CLI 与 WebUI</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%A1%B9%E7%9B%AE%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84%E5%88%86%E6%9E%90"><span class="toc-number">1.3.</span> <span class="toc-text">3. 项目目录结构分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%A0%B8%E5%BF%83%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="toc-number">1.4.</span> <span class="toc-text">4. 核心运行流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%80%BB%E4%BD%93%E6%B5%81%E7%A8%8B"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 总体流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-SessionRunner%EF%BC%9A%E5%8D%95%E8%BD%AE%E4%BC%9A%E8%AF%9D%E4%B8%AD%E6%9E%A2"><span class="toc-number">1.4.2.</span> <span class="toc-text">4.2 SessionRunner：单轮会话中枢</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Intent-Router%EF%BC%9A%E6%84%8F%E5%9B%BE%E8%AF%86%E5%88%AB%E4%B8%8E%E5%BF%AB%E9%80%9F%E8%B7%AF%E5%BE%84"><span class="toc-number">1.4.3.</span> <span class="toc-text">4.3 Intent Router：意图识别与快速路径</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-Agent-Loop%EF%BC%9A%E5%A4%8D%E6%9D%82%E4%BB%BB%E5%8A%A1%E7%9A%84%E8%A7%84%E5%88%92%E4%B8%8E%E5%B7%A5%E5%85%B7%E8%B0%83%E7%94%A8"><span class="toc-number">1.4.4.</span> <span class="toc-text">4.4 Agent Loop：复杂任务的规划与工具调用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-Tool-Registry-%E4%B8%8E%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5"><span class="toc-number">1.5.</span> <span class="toc-text">5. Tool Registry 与安全策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%B7%A5%E5%85%B7%E6%B3%A8%E5%86%8C%E6%9C%BA%E5%88%B6"><span class="toc-number">1.5.1.</span> <span class="toc-text">5.1 工具注册机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%B7%A5%E5%85%B7%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5"><span class="toc-number">1.5.2.</span> <span class="toc-text">5.2 工具安全策略</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-Search-%E4%B8%8E-RAG-%E6%9C%BA%E5%88%B6%E5%88%86%E6%9E%90"><span class="toc-number">1.6.</span> <span class="toc-text">6. Search 与 RAG 机制分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%90%9C%E7%B4%A2%E5%85%A5%E5%8F%A3"><span class="toc-number">1.6.1.</span> <span class="toc-text">6.1 搜索入口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-RAG-%E6%95%B0%E6%8D%AE%E6%B5%81"><span class="toc-number">1.6.2.</span> <span class="toc-text">6.2 RAG 数据流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%90%9C%E7%B4%A2%E8%AE%BE%E8%AE%A1%E4%BC%98%E7%82%B9"><span class="toc-number">1.6.3.</span> <span class="toc-text">6.3 搜索设计优点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E6%90%9C%E7%B4%A2%E8%AE%BE%E8%AE%A1%E4%B8%8D%E8%B6%B3"><span class="toc-number">1.6.4.</span> <span class="toc-text">6.4 搜索设计不足</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-Memory-%E9%95%BF%E6%9C%9F%E8%AE%B0%E5%BF%86%E6%A8%A1%E5%9D%97"><span class="toc-number">1.7.</span> <span class="toc-text">7. Memory 长期记忆模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-Skill-Package-%E6%9C%BA%E5%88%B6"><span class="toc-number">1.8.</span> <span class="toc-text">8. Skill Package 机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%B1%8F%E5%B9%95%E8%A7%82%E5%AF%9F%E4%B8%8E%E6%A1%8C%E9%9D%A2%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="toc-number">1.9.</span> <span class="toc-text">9. 屏幕观察与桌面上下文</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E9%85%8D%E7%BD%AE%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1"><span class="toc-number">1.10.</span> <span class="toc-text">10. 配置系统设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B"><span class="toc-number">1.11.</span> <span class="toc-text">11. 部署流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="toc-number">1.11.1.</span> <span class="toc-text">11.1 环境准备</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E8%8E%B7%E5%8F%96%E9%A1%B9%E7%9B%AE"><span class="toc-number">1.11.2.</span> <span class="toc-text">11.2 获取项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%88%9B%E5%BB%BA-Python-%E7%8E%AF%E5%A2%83"><span class="toc-number">1.11.3.</span> <span class="toc-text">11.3 创建 Python 环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E5%90%AF%E5%8A%A8%E6%9C%AC%E5%9C%B0%E5%A4%A7%E6%A8%A1%E5%9E%8B%E6%9C%8D%E5%8A%A1"><span class="toc-number">1.11.4.</span> <span class="toc-text">11.4 启动本地大模型服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-%E5%90%AF%E5%8A%A8-GPT-SoVITS"><span class="toc-number">1.11.5.</span> <span class="toc-text">12.5 启动 GPT-SoVITS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-6-%E9%85%8D%E7%BD%AE%E6%90%9C%E7%B4%A2%E4%B8%8E-RAG"><span class="toc-number">1.11.6.</span> <span class="toc-text">11.6 配置搜索与 RAG</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-7-%E5%90%AF%E5%8A%A8%E9%A1%B9%E7%9B%AE"><span class="toc-number">1.11.7.</span> <span class="toc-text">11.7 启动项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-8-%E8%BF%90%E8%A1%8C%E8%AF%8A%E6%96%AD"><span class="toc-number">1.11.8.</span> <span class="toc-text">11.8 运行诊断</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-%E4%BB%A3%E7%A0%81%E8%B4%A8%E9%87%8F%E8%AF%84%E4%BB%B7"><span class="toc-number">1.12.</span> <span class="toc-text">12. 代码质量评价</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E4%BC%98%E7%82%B9"><span class="toc-number">1.12.1.</span> <span class="toc-text">12.1 优点</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E6%9E%B6%E6%9E%84%E6%8B%86%E5%88%86%E8%BE%83%E6%B8%85%E6%99%B0"><span class="toc-number">1.12.1.1.</span> <span class="toc-text">1. 架构拆分较清晰</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E5%A4%9A%E5%85%A5%E5%8F%A3%E7%BB%9F%E4%B8%80%E5%88%B0%E5%90%8C%E4%B8%80-Runtime"><span class="toc-number">1.12.1.2.</span> <span class="toc-text">2. 多入口统一到同一 Runtime</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%B7%A5%E5%85%B7%E7%B3%BB%E7%BB%9F%E6%9C%89%E5%AE%89%E5%85%A8%E6%84%8F%E8%AF%86"><span class="toc-number">1.12.1.3.</span> <span class="toc-text">3. 工具系统有安全意识</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-Search-RAG-%E8%AE%BE%E8%AE%A1%E6%AF%94%E8%BE%83%E5%AE%8C%E6%95%B4"><span class="toc-number">1.12.1.4.</span> <span class="toc-text">4. Search&#x2F;RAG 设计比较完整</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-%E8%AF%AD%E9%9F%B3%E9%93%BE%E8%B7%AF%E8%80%83%E8%99%91%E4%BA%86%E7%9C%9F%E5%AE%9E%E4%BD%BF%E7%94%A8%E9%97%AE%E9%A2%98"><span class="toc-number">1.12.1.5.</span> <span class="toc-text">5. 语音链路考虑了真实使用问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-Skill-Package-%E5%85%B7%E5%A4%87%E6%89%A9%E5%B1%95%E6%BD%9C%E5%8A%9B"><span class="toc-number">1.12.1.6.</span> <span class="toc-text">6. Skill Package 具备扩展潜力</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E4%B8%8D%E8%B6%B3"><span class="toc-number">1.12.2.</span> <span class="toc-text">12.2 不足</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E9%83%A8%E7%BD%B2%E9%93%BE%E8%B7%AF%E8%BE%83%E9%87%8D"><span class="toc-number">1.12.2.1.</span> <span class="toc-text">1. 部署链路较重</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E8%84%9A%E6%9C%AC%E4%B8%AD%E5%AD%98%E5%9C%A8%E6%9C%AC%E5%9C%B0%E7%A1%AC%E7%BC%96%E7%A0%81%E8%B7%AF%E5%BE%84"><span class="toc-number">1.12.2.2.</span> <span class="toc-text">2. 脚本中存在本地硬编码路径</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95%E4%B8%8D%E8%B6%B3"><span class="toc-number">1.12.2.3.</span> <span class="toc-text">3. 自动化测试不足</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E5%B7%A5%E5%85%B7%E9%9C%80%E8%A6%81%E6%9B%B4%E4%B8%A5%E6%A0%BC%E4%BF%9D%E6%8A%A4"><span class="toc-number">1.12.2.4.</span> <span class="toc-text">4. 命令执行工具需要更严格保护</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E4%B8%AD%E7%9A%84%E6%A8%A1%E5%9E%8B%E5%90%8D%E4%B8%8D%E9%80%82%E5%90%88%E5%85%AC%E5%BC%80%E6%BC%94%E7%A4%BA"><span class="toc-number">1.12.2.5.</span> <span class="toc-text">5. 配置文件中的模型名不适合公开演示</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-%E9%9A%90%E7%A7%81%E6%95%B0%E6%8D%AE%E6%B8%85%E7%90%86%E5%BF%85%E9%A1%BB%E9%87%8D%E8%A7%86"><span class="toc-number">1.12.2.6.</span> <span class="toc-text">6. 隐私数据清理必须重视</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-%E6%8E%A8%E8%8D%90%E6%94%B9%E8%BF%9B%E8%B7%AF%E7%BA%BF"><span class="toc-number">1.13.</span> <span class="toc-text">13. 推荐改进路线</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5%EF%BC%9A%E6%8F%90%E5%8D%87%E5%8F%AF%E9%83%A8%E7%BD%B2%E6%80%A7"><span class="toc-number">1.13.1.</span> <span class="toc-text">13.1 第一阶段：提升可部署性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-%E7%AC%AC%E4%BA%8C%E9%98%B6%E6%AE%B5%EF%BC%9A%E8%A1%A5%E5%85%85%E6%B5%8B%E8%AF%95%E4%BD%93%E7%B3%BB"><span class="toc-number">1.13.2.</span> <span class="toc-text">13.2 第二阶段：补充测试体系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E7%AC%AC%E4%B8%89%E9%98%B6%E6%AE%B5%EF%BC%9A%E6%8F%90%E5%8D%87%E5%AE%89%E5%85%A8%E6%80%A7"><span class="toc-number">1.13.3.</span> <span class="toc-text">13.3 第三阶段：提升安全性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-4-%E7%AC%AC%E5%9B%9B%E9%98%B6%E6%AE%B5%EF%BC%9A%E4%BC%98%E5%8C%96%E7%94%A8%E6%88%B7%E4%BD%93%E9%AA%8C"><span class="toc-number">1.13.4.</span> <span class="toc-text">13.4 第四阶段：优化用户体验</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/05/19/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-AI%E8%AF%AD%E9%9F%B3%E5%8A%A9%E6%89%8B/" title="浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现"><img src="/img/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现"/></a><div class="content"><a class="title" href="/2026/05/19/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-AI%E8%AF%AD%E9%9F%B3%E5%8A%A9%E6%89%8B/" title="浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现">浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/09/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-PPT-Master/" title="PPT-Master"><img src="/img/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PPT-Master"/></a><div class="content"><a class="title" href="/2026/05/09/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-PPT-Master/" title="PPT-Master">PPT-Master</a><time datetime="2026-05-09T15:30:00.000Z" title="发表于 2026-05-09 23:30:00">2026-05-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/07/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/" title="基于大模型的移动应用合规检测系统开发记录"><img src="/img/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/1.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于大模型的移动应用合规检测系统开发记录"/></a><div class="content"><a class="title" href="/2026/05/07/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/" title="基于大模型的移动应用合规检测系统开发记录">基于大模型的移动应用合规检测系统开发记录</a><time datetime="2026-05-06T16:00:00.000Z" title="发表于 2026-05-07 00:00:00">2026-05-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/07/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-Qwen%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%E8%AE%B0%E5%BD%95/" title="Qwen 本地部署记录"><img src="/img/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Qwen 本地部署记录"/></a><div class="content"><a class="title" href="/2026/05/07/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-Qwen%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%E8%AE%B0%E5%BD%95/" title="Qwen 本地部署记录">Qwen 本地部署记录</a><time datetime="2026-05-06T16:00:00.000Z" title="发表于 2026-05-07 00:00:00">2026-05-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/07/%E9%9A%8F%E7%AC%94-%E4%BB%8A%E5%A4%A9%E7%9A%84%E4%B8%80%E7%82%B9%E6%83%B3%E6%B3%95/" title="搭建属于自己的博客"><img src="/img/%E9%9A%8F%E7%AC%94.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="搭建属于自己的博客"/></a><div class="content"><a class="title" href="/2026/05/07/%E9%9A%8F%E7%AC%94-%E4%BB%8A%E5%A4%A9%E7%9A%84%E4%B8%80%E7%82%B9%E6%83%B3%E6%B3%95/" title="搭建属于自己的博客">搭建属于自己的博客</a><time datetime="2026-05-06T16:00:00.000Z" title="发表于 2026-05-07 00:00:00">2026-05-07</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 浅梦</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script src="/js/ai-assistant.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
