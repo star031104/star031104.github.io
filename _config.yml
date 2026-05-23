@@ -1,0 +1,33 @@
+title: 浅梦的博客
+subtitle: 分享技术与生活
+description: 我的个人博客
+author: 浅梦
+language: zh-CN
+timezone: Asia/Shanghai
+
+url: https://star031104-github-io.pages.dev
+root: /
+
+theme: butterfly
+
+deploy:
+  type: git
+  repo: https://github.com/star031104/star031104.github.io.git
+  branch: main
+
+search:
+  path: search.xml
+  field: post
+  content: true
+
+sitemap:
+  path: sitemap.xml
+
+feed:
+  type: atom
+  path: atom.xml
+  limit: 20
+  content: true
+
+skip_render:
+  - "google*.html"
