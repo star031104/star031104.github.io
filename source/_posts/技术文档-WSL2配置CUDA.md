@@ -3,12 +3,16 @@ title: WSL2 CUDA 配置记录
 date: 2026-05-07
 categories:
   - 技术文档
-cover: /img/技术文档.png
-top_img: /img/index.png
+tags:
+  - WSL2
+  - CUDA
+  - GPU
+  - Windows
+cover: /img/covers/wsl2-cuda.webp
+top_img: /img/covers/wsl2-cuda.webp
 description: Windows + WSL2 下配置 CUDA 与 GPU 加速环境的完整记录。
 ---
 
-# WSL2 CUDA 配置记录
 
 最近很多本地 AI 工具都开始依赖：
 
@@ -26,7 +30,7 @@ Windows + WSL2 + CUDA
 
 这一套环境。
 
-# 一、为什么使用 WSL2
+## 一、为什么使用 WSL2
 
 相比虚拟机：
 
@@ -46,7 +50,7 @@ WSL2 最大的优点是：
 
 都更适合 Linux。
 
-# 二、安装 WSL2
+## 二、安装 WSL2
 
 管理员 PowerShell：
 
@@ -62,7 +66,7 @@ wsl -l -v
 
 查看版本。
 
-# 三、安装 Ubuntu
+## 三、安装 Ubuntu
 
 安装：
 
@@ -72,7 +76,7 @@ Ubuntu 22.04
 
 作为主要开发环境。
 
-# 四、检查 GPU
+## 四、检查 GPU
 
 进入 WSL：
 
@@ -84,7 +88,7 @@ nvidia-smi
 
 会显示 GPU 信息。
 
-# 五、安装 CUDA Toolkit
+## 五、安装 CUDA Toolkit
 
 下载：
 
@@ -98,7 +102,7 @@ CUDA Toolkit
 sudo apt install nvidia-cuda-toolkit
 ```
 
-# 六、Python 环境
+## 六、Python 环境
 
 后面主要使用：
 
@@ -114,7 +118,7 @@ conda
 conda create -n llm python=3.11
 ```
 
-# 七、PyTorch GPU 测试
+## 七、PyTorch GPU 测试
 
 测试：
 
@@ -132,9 +136,9 @@ True
 
 说明 CUDA 正常。
 
-# 八、遇到的问题
+## 八、遇到的问题
 
-## 1. localhost 代理问题
+### 1. localhost 代理问题
 
 WSL NAT 模式下：
 
@@ -151,7 +155,7 @@ localhost 代理不互通
 - 手动设置 IP
 - 或桥接模式
 
-## 2. CUDA 版本不匹配
+### 2. CUDA 版本不匹配
 
 有时候：
 
@@ -167,7 +171,7 @@ localhost 代理不互通
 CUDA unavailable
 ```
 
-# 九、实际效果
+## 九、实际效果
 
 配置完成后：
 
@@ -180,7 +184,7 @@ CUDA unavailable
 
 整体体验比 Windows 原生稳定很多。
 
-# 十、总结
+## 十、总结
 
 WSL2 现在已经基本成为：
 

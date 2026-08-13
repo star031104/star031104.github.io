@@ -1,11 +1,20 @@
 {
-  "name": "hexo-site",
-  "version": "0.0.0",
+  "name": "qianmeng-blog",
+  "version": "1.0.0",
   "private": true,
+  "description": "浅梦的个人技术博客",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "packageManager": "npm@11.16.0",
   "scripts": {
-    "build": "node scripts/build-knowledge.js && hexo generate",
+    "build": "hexo generate",
+    "check": "node tools/check-site.js",
+    "test": "npm run clean && npm run build && npm run check",
+    "build:sites": "npm run test && node tools/build-sites.js",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
+    "deploy:cloudflare": "npm test && node tools/deploy-cloudflare.js",
     "server": "hexo server"
   },
   "hexo": {
@@ -25,7 +34,6 @@
     "hexo-renderer-marked": "^7.0.0",
     "hexo-renderer-pug": "^3.0.0",
     "hexo-renderer-stylus": "^3.0.1",
-    "hexo-server": "^3.0.0",
-    "hexo-theme-landscape": "^1.0.0"
+    "hexo-server": "^3.0.0"
   }
 }

@@ -4,5 +4,8 @@ db.json
 *.log
 node_modules/
 public/
+dist/
 .deploy*/
 _multiconfig.yml
+.cloudflare-token
+.cloudflare-account-id

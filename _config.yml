@@ -1,12 +1,16 @@
 title: 浅梦的博客
 subtitle: 分享技术与生活
-description: 我的个人博客
+description: 浅梦的个人技术博客，记录本地大模型、AI Agent、RAG、机器学习、Windows 与 WSL2 工程实践，以及项目开发与生活思考。
 author: 浅梦
 language: zh-CN
 timezone: Asia/Shanghai
 
 url: https://star031104-github-io.pages.dev
 root: /
+
+pretty_urls:
+  trailing_index: false
+  trailing_html: false
 
 theme: butterfly
 
@@ -22,6 +26,8 @@ search:
 
 sitemap:
   path: sitemap.xml
+  exclude:
+    - data/**
 
 feed:
   type: atom
@@ -31,3 +37,5 @@ feed:
 
 skip_render:
   - "google*.html"
+  - "_headers"
+  - "site.webmanifest"

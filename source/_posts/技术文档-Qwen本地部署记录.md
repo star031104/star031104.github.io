@@ -3,12 +3,16 @@ title: Qwen 本地部署记录
 date: 2026-05-07
 categories:
   - 技术文档
-cover: /img/技术文档.png
-top_img: /img/index.png
+tags:
+  - Qwen
+  - llama.cpp
+  - 本地大模型
+  - CUDA
+cover: /img/covers/qwen-local.webp
+top_img: /img/covers/qwen-local.webp
 description: 基于 llama.cpp 在 RTX4060 Laptop 上部署 Qwen 本地大模型的完整记录。
 ---
 
-# Qwen 本地部署记录
 
 最近开始正式折腾本地大模型。
 
@@ -28,7 +32,7 @@ Qwen + llama.cpp + RTX4060 Laptop
 
 进行本地部署。
 
-# 一、设备环境
+## 一、设备环境
 
 目前使用的设备：
 
@@ -37,7 +41,7 @@ Qwen + llama.cpp + RTX4060 Laptop
 - Windows 11
 - WSL2 Ubuntu 22.04
 
-# 二、为什么选择 Qwen
+## 二、为什么选择 Qwen
 
 一开始其实对比过很多模型：
 
@@ -50,7 +54,7 @@ Qwen + llama.cpp + RTX4060 Laptop
 
 主要原因：
 
-## 1. 中文能力强
+### 1. 中文能力强
 
 Qwen 的中文表现确实很好。
 
@@ -62,7 +66,7 @@ Qwen 的中文表现确实很好。
 
 明显比很多模型更自然。
 
-## 2. 本地部署生态成熟
+### 2. 本地部署生态成熟
 
 目前：
 
@@ -74,7 +78,7 @@ Qwen 的中文表现确实很好。
 
 部署方便很多。
 
-## 3. 参数规模适合 4060 Laptop
+### 3. 参数规模适合 4060 Laptop
 
 因为只有 8GB 显存。
 
@@ -92,16 +96,16 @@ Qwen3.5-27B-Q4_K_M.gguf
 
 进行测试。
 
-# 三、部署 llama.cpp
+## 三、部署 llama.cpp
 
-## 1. 克隆项目
+### 1. 克隆项目
 
 ```bash
 git clone https://github.com/ggerganov/llama.cpp
 cd llama.cpp
 ```
 
-## 2. 编译 CUDA 版本
+### 2. 编译 CUDA 版本
 
 使用：
 
@@ -110,9 +114,9 @@ cmake -B build -DGGML_CUDA=ON
 cmake --build build --config Release
 ```
 
-# 四、踩过的坑
+## 四、踩过的坑
 
-## 1. CUDA 找不到
+### 1. CUDA 找不到
 
 最开始：
 
@@ -124,7 +128,7 @@ nvcc not found
 
 CUDA 没正确配置环境变量。
 
-## 2. Visual Studio 编译问题
+### 2. Visual Studio 编译问题
 
 还遇到：
 
@@ -140,7 +144,7 @@ No CMAKE_ASM_COMPILER could be found
 
 才正常。
 
-# 五、模型下载
+## 五、模型下载
 
 模型使用：
 
@@ -155,7 +159,7 @@ Qwen3.5-27B-GGUF
 
 两个量化版本。
 
-# 六、启动参数
+## 六、启动参数
 
 目前最常用：
 
@@ -169,9 +173,9 @@ llama-server ^
 --port 8000
 ```
 
-# 七、参数说明
+## 七、参数说明
 
-## 1. ngl
+### 1. ngl
 
 GPU 层数。
 
@@ -181,7 +185,7 @@ GPU 层数。
 
 代表尽量全部放 GPU。
 
-## 2. c
+### 2. c
 
 上下文长度。
 
@@ -193,7 +197,7 @@ GPU 层数。
 
 8K 上下文。
 
-## 3. t
+### 3. t
 
 CPU 线程数。
 
@@ -203,7 +207,7 @@ CPU 线程数。
 
 对应 CPU 线程数量。
 
-# 八、关闭思考模式
+## 八、关闭思考模式
 
 后面发现：
 
@@ -221,7 +225,7 @@ Qwen 思考模式虽然强。
 --chat-template-kwargs "{\"enable_thinking\":false}"
 ```
 
-# 九、实际体验
+## 九、实际体验
 
 目前：
 

@@ -3,20 +3,24 @@ title: PPT-Master
 date: 2026-05-09 23:30:00
 categories:
   - AI工具
-cover: /img/技术文档.png
-top_img: /img/index.png
+tags:
+  - AI工具
+  - PPT
+  - SVG
+  - DrawingML
+cover: /img/covers/ppt-master.webp
+top_img: /img/covers/ppt-master.webp
 description: 从项目原理、系统架构、SVG 渲染、DrawingML 到 Windows 本地部署，完整解析 PPT-Master 技术实现与运行流程
 ---
 
-# PPT-Master
 
-# 一、项目介绍
+## 一、项目介绍
 
 随着大语言模型的发展，AI 自动生成 PPT 已经成为一种非常热门的应用方向。
 
 传统 AI PPT 工具虽然可以快速生成内容，但大多数都存在一个问题：
 
-## “生成后无法继续编辑”
+### “生成后无法继续编辑”
 
 很多工具最终导出的：
 
@@ -30,13 +34,13 @@ description: 从项目原理、系统架构、SVG 渲染、DrawingML 到 Windows
 
 就是：
 
-# “生成真正可编辑的 PPT”
+## “生成真正可编辑的 PPT”
 
 项目地址：
 
 https://github.com/hugohe3/ppt-master
 
-# 二、PPT-Master 能干什么？
+## 二、PPT-Master 能干什么？
 
 PPT-Master 本质上：
 
@@ -57,7 +61,7 @@ LLM + SVG + PowerPoint DrawingML
 
 还可以：
 
-# 将 SVG 转换为真正可编辑的 PPTX 文件
+## 将 SVG 转换为真正可编辑的 PPTX 文件
 
 最终生成的 PPT：
 
@@ -72,7 +76,7 @@ LLM + SVG + PowerPoint DrawingML
 
 而不是单纯的图片。
 
-# 三、项目核心原理
+## 三、项目核心原理
 
 很多人以为：
 
@@ -102,7 +106,7 @@ DrawingML
 PPTX
 ```
 
-# 四、什么是 SVG？
+## 四、什么是 SVG？
 
 SVG：
 
@@ -114,11 +118,11 @@ Scalable Vector Graphics
 
 即：
 
-# 矢量图形
+## 矢量图形
 
 与普通 PNG/JPG 最大区别：
 
-## SVG 是“图形描述”
+### SVG 是“图形描述”
 
 例如：
 
@@ -139,7 +143,7 @@ SVG：
 - 元素独立
 - 更适合转换为 PPT 图形
 
-# 五、为什么 SVG 非常适合 PPT？
+## 五、为什么 SVG 非常适合 PPT？
 
 因为：
 
@@ -157,7 +161,7 @@ SVG 与 PowerPoint：
 
 天然兼容。
 
-# 六、什么是 DrawingML？
+## 六、什么是 DrawingML？
 
 这是 PPT-Master 最关键的技术之一。
 
@@ -184,7 +188,7 @@ PPT 中：
 
 都是 DrawingML。
 
-# 七、为什么很多 AI PPT 无法编辑？
+## 七、为什么很多 AI PPT 无法编辑？
 
 因为：
 
@@ -214,7 +218,7 @@ Canvas 截图
 - 修改图形
 - 修改布局
 
-# 八、PPT-Master 为什么能编辑？
+## 八、PPT-Master 为什么能编辑？
 
 因为：
 
@@ -234,11 +238,11 @@ SVG → DrawingML → PowerPoint Shape
 
 真正 Office 原生元素。
 
-# 九、项目适合什么场景？
+## 九、项目适合什么场景？
 
 PPT-Master 非常适合：
 
-## 1. 学术场景
+### 1. 学术场景
 
 例如：
 
@@ -247,7 +251,7 @@ PPT-Master 非常适合：
 - 研究生开题
 - 技术演示
 
-## 2. 企业场景
+### 2. 企业场景
 
 例如：
 
@@ -256,7 +260,7 @@ PPT-Master 非常适合：
 - 商业演示
 - 数据分析
 
-## 3. AI Agent 自动办公
+### 3. AI Agent 自动办公
 
 例如：
 
@@ -280,15 +284,15 @@ PPT-Master
 导出汇报
 ```
 
-# 十、下载项目
+## 十、下载项目
 
-## Git Clone
+### Git Clone
 
 ```bash
 git clone https://github.com/hugohe3/ppt-master.git
 ```
 
-## 或下载 ZIP
+### 或下载 ZIP
 
 GitHub：
 
@@ -298,25 +302,25 @@ Code
 Download ZIP
 ```
 
-# 十一、创建 Conda 环境
+## 十一、创建 Conda 环境
 
 推荐：
 
 单独创建环境。
 
-## 创建环境
+### 创建环境
 
 ```bash
 conda create -n pptmaster python=3.10
 ```
 
-## 激活环境
+### 激活环境
 
 ```bash
 conda activate pptmaster
 ```
 
-# 十二、安装项目依赖
+## 十二、安装项目依赖
 
 进入项目目录：
 
@@ -330,17 +334,17 @@ cd ppt-master
 pip install -r requirements.txt
 ```
 
-## 国内推荐清华源
+### 国内推荐清华源
 
 ```bash
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-# 十三、如何修改 PPT 风格？
+## 十三、如何修改 PPT 风格？
 
 这是很多人最关心的问题。
 
-# 方法 1：修改模板
+## 方法 1：修改模板
 
 项目中：
 
@@ -357,7 +361,7 @@ templates/
 - 页面布局
 - 标题样式
 
-# 方法 2：Prompt 控制风格
+## 方法 2：Prompt 控制风格
 
 例如：
 
@@ -371,7 +375,7 @@ templates/
 - 动态感图形
 ```
 
-# 方法 3：模仿论文风格
+## 方法 3：模仿论文风格
 
 甚至可以：
 
@@ -386,7 +390,7 @@ templates/
 - 图表
 - 布局
 
-# 十四、如何接入 API？
+## 十四、如何接入 API？
 
 PPT-Master 本质：
 
@@ -407,9 +411,9 @@ LLM + SVG + PPT
 - Ollama
 - llama.cpp
 
-# 十五、如何提高生成质量？
+## 十五、如何提高生成质量？
 
-# 1. 使用更强模型
+## 1. 使用更强模型
 
 推荐：
 
@@ -418,7 +422,7 @@ LLM + SVG + PPT
 - Qwen3
 - DeepSeek
 
-# 2. 强化 Prompt
+## 2. 强化 Prompt
 
 例如：
 
@@ -430,7 +434,7 @@ LLM + SVG + PPT
 - 动态渐变
 ```
 
-# 3. 使用参考图片
+## 3. 使用参考图片
 
 上传：
 
@@ -442,17 +446,17 @@ LLM + SVG + PPT
 
 模仿风格。
 
-# 十六、项目最大优点
+## 十六、项目最大优点
 
 最大的优点：
 
-# “真正适合二次编辑”
+## “真正适合二次编辑”
 
 这是很多 AI PPT：
 
 做不到的。
 
-# 十七、适合什么人？
+## 十七、适合什么人？
 
 非常适合：
 
@@ -463,7 +467,7 @@ LLM + SVG + PPT
 - 企业演示
 - 自动办公
 
-# 十八、未来玩法
+## 十八、未来玩法
 
 我现在正在尝试：
 
@@ -487,7 +491,7 @@ PPT-Master
 自动导出
 ```
 
-# 十九、总结
+## 十九、总结
 
 PPT-Master 并不是：
 
@@ -507,7 +511,7 @@ Office 自动化
 
 构成的一整套：
 
-# AI 自动演示文稿生成系统
+## AI 自动演示文稿生成系统
 
 其真正强大的地方：
 
@@ -517,7 +521,7 @@ Office 自动化
 
 而是：
 
-# “生成后还能继续编辑”
+## “生成后还能继续编辑”
 
 这一点：
 
@@ -529,4 +533,4 @@ Office 自动化
 
 都非常重要。
 
-### [PPT-Master 保姆教程，如何在 windows 系统下安装使用及如何配置生图模型](https://www.bilibili.com/video/BV1g59CB3Esj?vd_source=1ca5bb8c4551fd6e13f5aa490c154a33)
+#### [PPT-Master 保姆教程，如何在 windows 系统下安装使用及如何配置生图模型](https://www.bilibili.com/video/BV1g59CB3Esj?vd_source=1ca5bb8c4551fd6e13f5aa490c154a33)

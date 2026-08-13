@@ -3,12 +3,16 @@ title: 浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent �
 date: 2026-05-19
 categories:
     - 开发报告
-cover: /img/开发报告/2.png
-top_img: /img/index.png
+tags:
+  - AI Agent
+  - 本地大模型
+  - 语音交互
+  - RAG
+cover: /img/开发报告/2.webp
+top_img: /img/开发报告/2.webp
 description: 该项目以本地大语言模型为核心，结合 FunASR 语音识别、GPT-SoVITS 语音合成、Search/RAG、Tool Calling、长期记忆、屏幕观察和 Skill Package 工作流，实现了一个可在 Windows 本地运行的个人 AI Agent Runtime。
 ---
 
-# 浅梦 AI 助手 Runtime 开发报告：
 
 ## 1. 项目概述
 
@@ -734,7 +738,7 @@ llama-server \
 
 不要随意使用 `0.0.0.0`，否则同一局域网内的其他设备可能访问你的模型服务。
 
-### 12.5 启动 GPT-SoVITS
+### 11.5 启动 GPT-SoVITS
 
 确保 GPT-SoVITS 的 HTTP 服务监听：
 
