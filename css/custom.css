@@ -93,7 +93,7 @@ body {
 
 /* 卡片悬浮 */
 #recent-posts > .recent-post-item:hover,
-.card-widget:hover {
+.card-widget:not(#card-toc):hover {
   transform: translateY(-4px);
   box-shadow:
     0 12px 35px rgba(101, 182, 255, 0.22),
@@ -210,7 +210,7 @@ span.framework-info {
 
 /* 页面滚动进入动画 */
 .layout,
-.card-widget,
+.card-widget:not(#card-toc),
 .recent-post-item {
   animation: pageFadeUp 0.7s ease both;
 }
@@ -245,23 +245,23 @@ span.framework-info {
 }
 
 /* 侧边栏卡片依次浮现 */
-.card-widget {
+.card-widget:not(#card-toc) {
   animation: cardFadeUp 0.75s ease both;
 }
 
-.card-widget:nth-child(1) {
+.card-widget:not(#card-toc):nth-child(1) {
   animation-delay: 0.05s;
 }
 
-.card-widget:nth-child(2) {
+.card-widget:not(#card-toc):nth-child(2) {
   animation-delay: 0.12s;
 }
 
-.card-widget:nth-child(3) {
+.card-widget:not(#card-toc):nth-child(3) {
   animation-delay: 0.19s;
 }
 
-.card-widget:nth-child(4) {
+.card-widget:not(#card-toc):nth-child(4) {
   animation-delay: 0.26s;
 }
 
@@ -279,7 +279,7 @@ span.framework-info {
 /* 文章/正文卡片悬浮更顺滑 */
 #recent-posts > .recent-post-item,
 .layout > div:first-child:not(.recent-posts),
-.card-widget {
+.card-widget:not(#card-toc) {
   transition:
     transform 0.28s ease,
     box-shadow 0.28s ease,
@@ -367,8 +367,10 @@ span.framework-info {
 
 .video-card iframe {
   width: 100%;
-  height: 220px;
+  height: auto;
+  aspect-ratio: 16 / 9;
   display: block;
+  border: 0;
 }
 
 .video-card p {
@@ -741,6 +743,7 @@ span.framework-info {
   height: 58px;
 
   border-radius: 50%;
+  border: none;
 
   background:
     linear-gradient(
@@ -962,6 +965,43 @@ span.framework-info {
   cursor: pointer;
 }
 
+#ai-panel-send:disabled,
+#ai-summary-btn:disabled,
+#ai-panel-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.ai-privacy-note {
+  margin: 0;
+  padding: 0 16px 12px;
+  color: #607086;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#ai-assistant button:focus-visible,
+#ai-panel-input:focus-visible,
+.docs-item:focus-visible,
+.report-card:focus-visible,
+.essay-card:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+}
+
 /* 深色模式 */
 [data-theme="dark"] #ai-assistant-panel {
 
@@ -993,8 +1033,27 @@ span.framework-info {
   color: white;
 }
 
+[data-theme="dark"] .ai-privacy-note {
+  color: #aebbd4;
+}
+
 /* 手机端 */
 @media screen and (max-width: 600px) {
+
+  #page-header.post-bg #post-info {
+    max-width: 100vw;
+  }
+
+  #post-info .post-title {
+    display: block;
+    overflow: visible;
+    max-width: 100%;
+    font-size: clamp(1.55rem, 7vw, 2rem);
+    line-height: 1.35;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    -webkit-line-clamp: unset;
+  }
 
   #ai-assistant-panel {
 
@@ -1004,7 +1063,7 @@ span.framework-info {
 
     bottom: 160px;
 
-    height: 480px;
+    height: min(480px, calc(100dvh - 190px));
   }
 
   #ai-assistant-btn {
@@ -1038,4 +1097,15 @@ span.framework-info {
 
 [data-theme="dark"] .ai-panel-actions {
   background: rgba(18,26,48,0.72);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
