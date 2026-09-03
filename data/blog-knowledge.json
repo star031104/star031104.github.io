@@ -1,5 +1,24 @@
 [
   {
+    "id": "f42d8a170fc83c91",
+    "title": "映章 YingZhang 开发报告：从材料到可编辑演示的 AI PPT 生产系统",
+    "heading": "映章 YingZhang 开发报告：从材料到可编辑演示的 AI PPT 生产系统",
+    "categories": [
+      "开发报告"
+    ],
+    "category": "开发报告",
+    "tags": [
+      "AI PPT",
+      "演示生成",
+      "工作流"
+    ],
+    "date": "2026-09-04T08:00:00.000Z",
+    "updated": "2026-09-04T08:00:00.000Z",
+    "source": "_posts/开发报告-映章YingZhang-AI-PPT.md",
+    "url": "/2026/09/04/yingzhang-ai-ppt/",
+    "content": "映章是一套中文优先的智能演示创作系统。它不把 AI PPT 理解为一次提示词到文件的黑箱生成，而是把材料解析、证据图谱、叙事规划、页面契约、候选渲染、视觉反思、人工选择和可编辑交付组织成可恢复、可审计的有界工作流。系统支持 HTML、PDF 与原生可编辑 PPTX，具备页级并发、单页重生成、对象级编辑、任务取消与恢复、企业品牌、素材许可台账、无障碍门禁和 PowerPoint 深度交付能力。"
+  },
+  {
     "id": "0258e897cde77f0b",
     "title": "砚火 InkForge Local 开发报告：让本地 AI 真正写得动一部长篇小说",
     "heading": "砚火 InkForge Local 开发报告：让本地 AI 真正写得动一部长篇小说",

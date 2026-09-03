@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>映章 YingZhang 开发报告：从材料到可编辑演示的 AI PPT 生产系统 | 浅梦的博客</title>
+  <meta name="description" content="完整复盘映章如何通过证据图谱、有界工作流、页级并发、视觉反思和原生可编辑 PPTX，把 AI PPT 从一次性生成升级为可恢复、可审计、可交付的生产系统。">
+  <link rel="canonical" href="https://star031104-github-io.pages.dev/2026/09/04/yingzhang-ai-ppt/">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="映章 YingZhang 开发报告：从材料到可编辑演示的 AI PPT 生产系统">
+  <meta property="og:description" content="把 AI PPT 从一次性生成升级为可恢复、可审计、可编辑交付的生产系统。">
+  <meta property="og:url" content="https://star031104-github-io.pages.dev/2026/09/04/yingzhang-ai-ppt/">
+  <meta property="article:published_time" content="2026-09-04T08:00:00.000Z">
+  <meta property="article:author" content="浅梦">
+  <link rel="stylesheet" href="/css/index.css?v=5.5.4">
+  <style>
+    :root{--yz-ink:#192235;--yz-muted:#64748b;--yz-line:#e2e8f0;--yz-paper:#fff;--yz-accent:#5b55e7;--yz-soft:#f2f1ff;--yz-green:#0f9f78}
+    *{box-sizing:border-box}body{margin:0;color:var(--yz-ink);background:#f7f8fc;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.85}
+    .yz-nav{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 max(24px,calc((100vw - 1080px)/2));background:rgba(255,255,255,.94);border-bottom:1px solid var(--yz-line);position:sticky;top:0;z-index:5;backdrop-filter:blur(12px)}
+    .yz-brand{font-size:19px;font-weight:800;color:var(--yz-ink);text-decoration:none}.yz-links a{margin-left:22px;color:#475569;text-decoration:none;font-size:14px}.yz-links a:hover{color:var(--yz-accent)}
+    .yz-hero{padding:78px 24px 64px;background:radial-gradient(circle at 15% 10%,#e1ddff 0,transparent 34%),linear-gradient(135deg,#fbfbff,#eef5ff)}
+    .yz-hero-inner,.yz-shell{max-width:920px;margin:auto}.yz-kicker{display:inline-block;padding:6px 12px;border-radius:999px;background:var(--yz-soft);color:var(--yz-accent);font-size:13px;font-weight:700;letter-spacing:.08em}
+    h1{font-size:clamp(36px,6vw,62px);line-height:1.14;margin:22px 0 18px;letter-spacing:-.04em}.yz-lead{max-width:760px;font-size:20px;color:#475569;margin:0}.yz-meta{margin-top:25px;color:var(--yz-muted);font-size:14px}
+    .yz-shell{padding:52px 24px 90px}.yz-article{background:var(--yz-paper);border:1px solid var(--yz-line);border-radius:24px;padding:clamp(28px,6vw,68px);box-shadow:0 18px 60px rgba(31,41,55,.07)}
+    .yz-article h2{font-size:29px;line-height:1.35;margin:58px 0 16px}.yz-article h3{font-size:21px;margin:34px 0 10px}.yz-article p{font-size:17px;margin:14px 0;color:#334155}.yz-article strong{color:#172033}.yz-article ul{padding-left:1.2em}.yz-article li{margin:8px 0;color:#334155}
+    .yz-callout{margin:28px 0;padding:22px 24px;border-left:4px solid var(--yz-accent);background:var(--yz-soft);border-radius:4px 14px 14px 4px;font-size:18px;font-weight:650}
+    .yz-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:34px 0}.yz-stat{padding:20px;border:1px solid var(--yz-line);border-radius:16px;background:#fafbff}.yz-stat b{display:block;font-size:30px;color:var(--yz-accent)}.yz-stat span{font-size:13px;color:var(--yz-muted)}
+    .yz-flow{margin:24px 0;padding:24px;border-radius:18px;background:#172033;color:#eef2ff;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow:auto;white-space:pre;line-height:1.7;font-size:14px}
+    .yz-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.yz-card{border:1px solid var(--yz-line);border-radius:16px;padding:20px}.yz-card h3{margin:0 0 8px}.yz-card p{font-size:15px;margin:0;color:var(--yz-muted)}
+    .yz-cta{margin-top:56px;padding:30px;border-radius:20px;background:linear-gradient(135deg,#5b55e7,#3a7bd5);color:white}.yz-cta h2{margin:0 0 8px;color:white}.yz-cta p{color:#eef2ff}.yz-button{display:inline-block;margin-top:10px;padding:11px 18px;border-radius:10px;background:white;color:#4338ca!important;text-decoration:none;font-weight:750}
+    footer{text-align:center;padding:30px;color:var(--yz-muted);font-size:14px}
+    @media(max-width:720px){.yz-links a:nth-child(2){display:none}.yz-stats{grid-template-columns:1fr 1fr}.yz-grid{grid-template-columns:1fr}.yz-hero{padding-top:50px}.yz-article{border-radius:16px}.yz-shell{padding:24px 12px 60px}}
+  </style>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"映章 YingZhang 开发报告：从材料到可编辑演示的 AI PPT 生产系统","datePublished":"2026-09-04T08:00:00.000Z","dateModified":"2026-09-04T08:00:00.000Z","author":{"@type":"Person","name":"浅梦"},"mainEntityOfPage":"https://star031104-github-io.pages.dev/2026/09/04/yingzhang-ai-ppt/"}</script>
+</head>
+<body>
+  <nav class="yz-nav">
+    <a class="yz-brand" href="/">浅梦的博客</a>
+    <div class="yz-links"><a href="/">首页</a><a href="/archives/">归档</a><a href="/categories/开发报告/">开发报告</a></div>
+  </nav>
+  <header class="yz-hero">
+    <div class="yz-hero-inner">
+      <span class="yz-kicker">开发报告 · AI PRESENTATION</span>
+      <h1>映章 YingZhang：从材料到可编辑演示的 AI PPT 生产系统</h1>
+      <p class="yz-lead">真正困难的不是让模型“写十页 PPT”，而是让证据、叙事、视觉、人工选择和最终交付在同一条可恢复工作流里保持一致。</p>
+      <div class="yz-meta">浅梦 · 2026-09-04 · 约 10 分钟阅读</div>
+    </div>
+  </header>
+  <main class="yz-shell">
+    <article class="yz-article">
+      <p>现在的模型已经能快速生成大纲和文案，但一份真正要交给客户、老师或管理层的演示，不只是一组文字卡片。它必须回答：数字来自哪里？为什么这一页用图表而不是列表？修改一页时能不能保住其他页面？导出的 PowerPoint 是否仍然可编辑？任务中断后能否继续？</p>
+      <div class="yz-callout">映章的目标不是替人“按一下生成 PPT”，而是把专业演示生产拆成可计划、可检查、可修复、可交付的工程流程。</div>
+
+      <h2>一、项目定位：生成器之外，更像一间演示工作室</h2>
+      <p>映章是一套中文优先的智能演示创作系统。输入可以是一段主题说明，也可以是 PDF、Word、Excel、PPT、Markdown、网页或图片材料；输出则覆盖 HTML 预览、PDF 与原生可编辑 PPTX。</p>
+      <p>系统在生成前明确受众、沟通目标、演讲时长、语气和品牌，再把材料解析、证据提取、叙事规划、页面拆解、候选渲染、视觉检查与导出串起来。人工可以在关键节点选择版式、编辑对象、批准版本，而不是只能接受模型给出的唯一答案。</p>
+
+      <div class="yz-stats">
+        <div class="yz-stat"><b>79</b><span>后端测试通过</span></div>
+        <div class="yz-stat"><b>23</b><span>生成引擎测试通过</span></div>
+        <div class="yz-stat"><b>101</b><span>接口路由无冲突</span></div>
+        <div class="yz-stat"><b>3</b><span>HTML / PDF / PPTX</span></div>
+      </div>
+
+      <h2>二、核心方法：先建立证据与契约，再生成页面</h2>
+      <p>传统链路通常是“用户提示词 → 大模型 → PPT 文件”。它足够短，却会把事实可靠性、版式决策和错误恢复都塞进一次不可观察的调用里。映章采用分层流水线：</p>
+      <div class="yz-flow">材料导入
+  ↓ 解析、切分、来源登记
+证据图谱
+  ↓ 受众 / 目标 / 叙事 / 页面角色
+演示计划
+  ↓ 页面契约、文字预算、对象上限
+候选渲染（页级并发）
+  ↓ 几何 / 可读性 / 层级 / 语义检查
+定向修复与人工选择
+  ↓
+HTML · PDF · 原生可编辑 PPTX</div>
+      <p>每个节点都声明输入、输出、幂等键、重试范围和产物位置。于是“恢复任务”不是重新猜一遍模型当时在做什么，而是复用已经完成且仍然有效的节点。</p>
+
+      <h2>三、证据约束：把“看起来可信”变成“可以追溯”</h2>
+      <p>映章会把材料中的数字、结论、原文图和来源章节绑定到页面。观众页脚保持干净，精确出处、讲解要点与过渡语进入演讲备注。重要章节还会经过语义完整性检查，避免系统仅仅“挂了一个引用”，却没有真正覆盖材料的关键结论。</p>
+      <p>开放网络素材也不是搜到就用：图片需要登记作者、许可、来源链接和替代文本，许可不明确的候选不能进入最终页面。这套台账同时服务于版权复核和无障碍交付。</p>
+
+      <h2>四、视觉生成：候选、选择、反思，而非一次押注</h2>
+      <div class="yz-grid">
+        <section class="yz-card"><h3>多候选</h3><p>每页生成 3–5 个真实渲染候选，按页面角色、内容负载、证据类型和全稿节奏评分。</p></section>
+        <section class="yz-card"><h3>语义路由</h3><p>多指标优先图表，过程优先流程，差异优先对比，主张页控制对象数量与文字预算。</p></section>
+        <section class="yz-card"><h3>视觉反思</h3><p>截图后检查溢出、碰撞、留白、层级、焦点和相邻页面同构，只做有边界的定向修复。</p></section>
+        <section class="yz-card"><h3>人工边界</h3><p>用户选中的版式和完成的手工修改被锁定，后台重试不会悄悄覆盖已经确认的结果。</p></section>
+      </div>
+      <p>这种模式借鉴了优秀 AI 演示项目中“规划—生成—渲染—评价”的思想，也吸收了 <a href="https://github.com/yuyuanweb/ai-ppt-generator">ai-ppt-generator</a> 对工作流编排和演示生成的实践，但实现上并未机械复制：映章进一步加入了页级并发、持久化任务、有界节点、证据图谱、对象级编辑和多格式一致交付。</p>
+
+      <h2>五、任务系统：长流程必须能取消、恢复和追踪</h2>
+      <p>生成整套演示是长任务。映章把任务存储、执行器和实时事件拆成独立契约，本机默认可以零外部依赖运行，同时为 PostgreSQL、Redis 和分布式队列保留稳定接入边界。</p>
+      <ul>
+        <li>大纲、样张、整稿与单页任务都保存上下文和节点进度；</li>
+        <li>服务重启后可重新入队，不必丢弃全部成果；</li>
+        <li>前端通过带首帧快照与心跳的事件流接收进度，断线时自动降级轮询；</li>
+        <li>取消发生在安全步骤边界，单页失败不会阻断其他页面；</li>
+        <li>正文、对象、候选与画布布局使用版本号拒绝过期写入。</li>
+      </ul>
+
+      <h2>六、编辑与交付：最终文件必须继续工作</h2>
+      <p>系统支持页内对象级对话编辑：可以只改标题、某条要点、图表或视觉对象；也可以只重新生成当前页。所有修改保留消息记录和页面版本，并一致进入 HTML、PDF 与 PPTX。</p>
+      <p>PPTX 不是截图容器。数据表、时间线、流程、分层架构和关系图优先输出为 PowerPoint 原生对象；企业模板通过页面角色选择母版；演讲备注、转场、动画、旁白以及图片、音视频也有明确的交付路径。对既有 PPTX，系统还能局部改写页面对象，同时尽量保留主题、母版、版式和动画结构。</p>
+
+      <h2>七、工程优化：让复杂系统仍然可以维护</h2>
+      <p>随着能力增长，最初集中的工作流入口容易变成难以维护的“大文件”。本轮优化按领域拆分项目、生成、审阅、发布、品牌、素材和 PowerPoint 等路由，同时保留清晰的装配边界。生成引擎与前端工作台也分别收敛到更可测试的模块。</p>
+      <p>当前自动验证覆盖 79 项后端测试、23 项生成引擎测试和 2 项前端测试；前端生产构建通过，101 个接口方法与路径组合无重复。这些数字不是完成的终点，却证明核心边界已经能够被持续验证。</p>
+
+      <h2>八、这套框架最值得保留的思想</h2>
+      <ul>
+        <li><strong>演示是叙事产品，不是页面集合。</strong>先确定受众、目标和节奏，再决定每页内容。</li>
+        <li><strong>模型输出是候选，不是事实。</strong>证据、许可、质量门禁和人工批准必须有独立位置。</li>
+        <li><strong>视觉需要闭环。</strong>只生成代码无法知道画面是否成立，必须真实渲染并检查。</li>
+        <li><strong>长任务必须有状态。</strong>恢复、取消、重试和并发冲突不是附加功能，而是生产系统的基础。</li>
+        <li><strong>交付物要可继续编辑。</strong>真正有价值的 PPTX 应当进入团队后续工作，而不是结束于一张张图片。</li>
+      </ul>
+
+      <div class="yz-cta">
+        <h2>项目已公开</h2>
+        <p>源码、架构分析、完整实现报告、测试材料和本地启动说明均已整理到 GitHub。</p>
+        <a class="yz-button" href="https://github.com/star031104/yingzhang-ai-ppt">查看映章 GitHub 仓库 →</a>
+      </div>
+    </article>
+  </main>
+  <footer>© 2026 浅梦 · 用工程方法打磨创作工具</footer>
+</body>
+</html>
