@@ -452,6 +452,16 @@ span.framework-info {
     0 0 18px rgba(179,136,255,0.18);
 }
 
+.report-cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 0 0 20px;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 10px 28px rgba(31, 45, 80, 0.16);
+}
+
 .report-top {
   display: flex;
   justify-content: space-between;
