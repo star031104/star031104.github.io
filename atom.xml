@@ -10,7 +10,7 @@
   <rights>All rights reserved 2026, 浅梦</rights>
   <subtitle>分享技术与生活</subtitle>
   <title>浅梦的博客</title>
-  <updated>2026-09-14T02:00:00.000Z</updated>
+  <updated>2026-09-14T04:00:00.000Z</updated>
   <entry>
     <author>
       <name>浅梦</name>
@@ -20,219 +20,259 @@
     <category term="演示生成" scheme="https://star031104-github-io.pages.dev/tags/%E6%BC%94%E7%A4%BA%E7%94%9F%E6%88%90/"/>
     <category term="工作流" scheme="https://star031104-github-io.pages.dev/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81/"/>
     <content>
-      <![CDATA[<div data='{"limitDay":365,"messagePrev":"本文距上次更新已过去","messageNext":"天，部分技术细节可能已经发生变化，请结合最新文档阅读。","postUpdate":"2026-09-14 10:00:00"}' hidden id="post-outdate-notice"></div>
+      <![CDATA[<div data='{"limitDay":365,"messagePrev":"本文距上次更新已过去","messageNext":"天，部分技术细节可能已经发生变化，请结合最新文档阅读。","postUpdate":"2026-09-14 12:00:00"}' hidden id="post-outdate-notice"></div>
 
-<section class="yz-release-hero" aria-label="映章首个公开版本摘要">
-  <div class="yz-eyebrow">PUBLIC RELEASE · v0.1.0</div>
-  <h2>让 AI 演示从“生成几页内容”，走向可追溯、可修改、可交付的生产流程</h2>
-  <p>映章是一套中文优先、本地运行的 AI 演示工作台。它从材料结构和证据出发，完成叙事规划、多候选页面生成、质量检查与定向修复，最终交付 HTML、PDF 和原生可编辑 PPTX。</p>
-  <div class="yz-pills"><span class="yz-pill">证据约束</span><span class="yz-pill">有界工作流</span><span class="yz-pill">多候选视觉</span><span class="yz-pill">页级恢复</span><span class="yz-pill">可编辑 PPTX</span><span class="yz-pill">本地隐私</span></div>
-  <div class="yz-actions"><a class="yz-button yz-button-primary" href="https://github.com/star031104/yingzhang-ai-ppt" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> 查看 GitHub 项目</a><a class="yz-button yz-button-secondary" href="https://github.com/star031104/yingzhang-ai-ppt/tree/v0.1.0" target="_blank" rel="noopener noreferrer">浏览 v0.1.0 源码</a></div>
-</section>
+<p>做 AI PPT 这件事，最容易得到的是“几页看起来像幻灯片的内容”，最难得到的却是一个真正能够交付的文件。</p>
 
-<div class="yz-stat-grid" aria-label="首版验证数据">
-  <div class="yz-stat"><strong>180</strong><span>Python API、工作流与文档解析测试通过</span></div>
-  <div class="yz-stat"><strong>44</strong><span>演示生成引擎测试通过</span></div>
-  <div class="yz-stat"><strong>10</strong><span>React 前端组件测试通过</span></div>
-</div>
+<p>当输入只是一句话时，模型可以很快给出标题、要点和配图建议。但真实工作里的输入往往是一组 Word、PDF、Excel、旧演示稿和网页资料。它们包含相互依赖的数据、结论、限制条件与图表。系统不仅要决定讲什么，还要说明依据来自哪里、为什么这样组织，以及最终导出的 PPTX 是否还能继续编辑。</p>
 
-<p class="yz-section-lead">一份真正要交给客户、老师或管理层的演示，必须回答比“能否生成”更难的问题：数字来自哪里？为什么这一页适合图表而不是列表？修改一页时能否保住其他页面？任务中断后能否继续？导出的 PowerPoint 是否还能由团队接着编辑？映章的设计正是从这些问题开始。</p>
+<p>这也是我开发<strong>映章（YingZhang）</strong>的起点：不再把 PPT 生成理解为一次提示词调用，而是把它拆成材料理解、证据组织、叙事规划、页面生成、质量检查、人工确认和正式导出等一系列可以检查的步骤。</p>
 
-<div class="yz-callout"><strong>版本说明：</strong>这是映章的首个公开版本 <code>v0.1.0</code>，仓库以独立根提交发布，不承接此前的内部迭代版本。公开内容只包含源代码、安全配置示例、测试与架构决策，不包含 API Key、个人偏好、运行数据库、生成结果或内部版本文档。</div>
+<blockquote>
+<p><strong>2026-09-14 更新：</strong>映章已发布首个公开版本 <code>v0.1.0</code>。公开仓库从一条独立的根提交开始，不承接此前内部开发历史；仓库中不包含维护者的 API Key、本地路径、个人偏好、运行数据或版本历史文档。</p>
+</blockquote>
 
-<h2 id="项目定位"><a class="headerlink" href="#项目定位" title="项目定位"></a>一、项目定位：不是模板堆叠，而是演示生产系统</h2>
+<h2 id="一、项目定位：不是自动排版器，而是演示生产工作台"><a href="#一、项目定位：不是自动排版器，而是演示生产工作台" class="headerlink" title="一、项目定位：不是自动排版器，而是演示生产工作台"></a>一、项目定位：不是自动排版器，而是演示生产工作台</h2>
 
-<p>传统 AI PPT 工具常把链路压缩成“输入一句话—调用模型—导出文件”。这样的流程很快，却容易把事实可靠性、视觉选择、错误恢复和交付质量全部押在一次不可观察的输出上。映章把演示生产拆成若干可检查阶段，让人能够在关键节点理解发生了什么，并保留最终决定权。</p>
+<p>映章是一套中文优先、本地运行的 AI 演示生产系统。它面向的不是“输入一句话，随机生成几张模板页”，而是需要阅读材料、建立论证、反复修改并最终交付的真实任务，例如课程汇报、毕业答辩、研究报告、产品方案和业务复盘。</p>
 
-<div class="yz-card-grid">
-  <div class="yz-card"><h3>证据优先</h3><p>数字、结论、表格和原文图片与材料位置建立关联，来源不是最后补上的脚注，而是内容规划的输入。</p></div>
-  <div class="yz-card"><h3>过程可控</h3><p>大纲、整稿、单页和修复任务均由有界节点组成，可取消、可重试、可恢复，并避免无限循环。</p></div>
-  <div class="yz-card"><h3>交付可继续</h3><p>图表、表格、流程和关系图优先生成 PowerPoint 原生对象，让演示能够进入真实团队协作。</p></div>
-</div>
-
-<h2 id="整体架构"><a class="headerlink" href="#整体架构" title="整体架构"></a>二、整体架构：四层职责，一条完整交付链路</h2>
-
-<p>映章采用前后端与演示引擎分离的本地架构。每一层只承担清晰的职责，并通过稳定数据结构连接。</p>
-
-<div class="yz-architecture" role="img" aria-label="映章四层技术架构">
-  <div class="yz-layer"><div class="yz-layer-label">交互层</div><div class="yz-layer-items"><span>React 19</span><span>项目工作台</span><span>材料检查</span><span>候选选择</span><span>质量中心</span></div></div>
-  <div class="yz-arrow">↓</div>
-  <div class="yz-layer"><div class="yz-layer-label">领域服务</div><div class="yz-layer-items"><span>FastAPI</span><span>Source & Evidence</span><span>Planning</span><span>Personalization</span><span>Governance</span></div></div>
-  <div class="yz-arrow">↓</div>
-  <div class="yz-layer"><div class="yz-layer-label">任务与生成</div><div class="yz-layer-items"><span>Bounded Workflow</span><span>Job Store</span><span>Playwright</span><span>PptxGenJS</span><span>python-pptx</span></div></div>
-  <div class="yz-arrow">↓</div>
-  <div class="yz-layer"><div class="yz-layer-label">本地数据</div><div class="yz-layer-items"><span>SQLite</span><span>Artifact Store</span><span>OS Keyring</span><span>HTML / PDF / PPTX</span></div></div>
-</div>
-
-<p><strong>Web 工作台</strong>负责创建项目、检查材料、审阅大纲、选择候选、编辑页面和查看质量结果。<strong>FastAPI 服务</strong>管理来源、证据、页面版本、任务、个性化与交付。<strong>演示引擎</strong>把页面场景渲染成真实浏览器画面，并生成 PDF 与 PPTX。<strong>本地数据层</strong>保存数据库、上传材料、运行产物和加密凭据。</p>
-
-<h2 id="生成工作流"><a class="headerlink" href="#生成工作流" title="生成工作流"></a>三、生成工作流：从材料到成稿的八个阶段</h2>
-
-<div class="yz-flow">
-  <div class="yz-flow-step"><h3>需求建模</h3><p>明确受众、目标、时长、语气、品牌与演示类型。</p></div>
-  <div class="yz-flow-step"><h3>材料解析</h3><p>读取章节、表格、图片、页码、工作表和来源信息。</p></div>
-  <div class="yz-flow-step"><h3>证据组织</h3><p>提取事实、数字、结论与限制条件，形成可引用内容。</p></div>
-  <div class="yz-flow-step"><h3>叙事规划</h3><p>安排页面角色、逻辑顺序、核心主张和转场关系。</p></div>
-  <div class="yz-flow-step"><h3>页面契约</h3><p>为每页定义内容预算、视觉意图、区域与对象上限。</p></div>
-  <div class="yz-flow-step"><h3>候选渲染</h3><p>按内容语义生成多个真实页面候选，而非只换模板名。</p></div>
-  <div class="yz-flow-step"><h3>质量修复</h3><p>检查溢出、碰撞、完整性、对比度、来源与许可。</p></div>
-  <div class="yz-flow-step"><h3>人工交付</h3><p>保留人工选择和局部修改，导出 HTML、PDF 与 PPTX。</p></div>
-</div>
-
-<p>每个长任务节点都保存输入摘要、输出、幂等键、最大重试次数与产物位置。服务中断后，系统可以复用仍然有效的完成节点；材料或页面内容发生变化时，旧预览会被识别为过期，避免把“看起来存在的文件”误当成当前版本。</p>
-
-<h2 id="材料与证据"><a class="headerlink" href="#材料与证据" title="材料与证据"></a>四、材料与证据：读取文件不等于理解文件</h2>
-
-<p>映章支持 PDF、DOCX、XLSX、CSV、PPTX、Markdown、HTML 和常见图片。解析不只提取文字，还尽量保留文字所在的结构：Word 标题路径和图表归属、PDF 页码与可恢复表格、Excel 工作表与单位、PPTX 页面和对象关系。</p>
-
-<table><thead><tr><th>材料风险</th><th>映章的处理方式</th></tr></thead><tbody>
-  <tr><td>长文只读取开头</td><td>按相关性、结果、边界和章节覆盖选择完整内容窗口</td></tr>
-  <tr><td>百分比与小数混淆</td><td>保留原始格式、单位和缺失值语义，不擅自补零</td></tr>
-  <tr><td>表格脱离章节上下文</td><td>记录表格所属标题路径、列名与来源位置</td></tr>
-  <tr><td>限定条件在润色时丢失</td><td>把否定、范围与适用边界纳入内容完整性检查</td></tr>
-  <tr><td>图片来源和许可不清</td><td>通过素材台账记录作者、来源、许可与替代文本</td></tr>
-</tbody></table>
-
-<figure class="yz-figure"><img src="/img/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/yingzhang-material-understanding.webp" alt="映章读取合成 Word 和 Excel 材料后生成的九页演示样例" loading="lazy" decoding="async"><figcaption>合成 Word 报告与 Excel 指标表的九页全链路验证样例；数据仅用于测试，不代表真实业务结论。</figcaption></figure>
-
-<h2 id="视觉与交付"><a class="headerlink" href="#视觉与交付" title="视觉与交付"></a>五、视觉与交付：候选、评价、选择，而不是一次押注</h2>
-
-<p>页面生成首先判断内容关系。多指标、同单位数据适合图表；混合单位或存在缺失值时保留为表格；过程信息采用流程结构；差异信息使用对比；解释性结论则使用“判断与证据”等布局。低内容负载页面不会为了填满画布强行制造卡片。</p>
-
-<ul class="yz-checklist">
-  <li>每页可生成多个真实渲染候选，并结合页面角色、内容负载和全稿节奏评分。</li>
-  <li>浏览器截图检查文字裁切、对象碰撞、画布溢出、对比度和破损图片。</li>
-  <li>自动修复只处理明确问题，不覆盖用户已经选定的候选与手工修改。</li>
-  <li>图表、表格、时间线、流程和关系图优先输出为可编辑 PowerPoint 对象。</li>
-  <li>正式导出前再次校验内容版本、素材许可、无障碍信息和交付完整性。</li>
-</ul>
-
-<h2 id="部署指南"><a class="headerlink" href="#部署指南" title="部署指南"></a>六、部署指南：克隆后如何在本地运行</h2>
-
-<p>运行环境需要 Git、Python 3.11+、Node.js 20+ 与 npm。还需要一个兼容 OpenAI API 的模型服务；它既可以是云端服务，也可以是本机模型服务。</p>
-
-<h3 id="windows一键启动">Windows 一键启动</h3>
-<div class="yz-code"><div class="yz-code-head">PowerShell</div><pre><code>git clone https://github.com/star031104/yingzhang-ai-ppt.git
-cd yingzhang-ai-ppt
-Copy-Item .env.example .env
-./启动项目.cmd</code></pre></div>
-
-<p>启动脚本会检查 Python 与 Node.js 版本，安装缺失依赖和 Chromium，构建网页并启动本地服务。完成后访问 <code>http://127.0.0.1:8000</code>。首次安装需要联网，日志位于 <code>runtime/launcher/</code>。</p>
-
-<h3 id="手动安装">Windows、macOS 与 Linux 手动安装</h3>
-<div class="yz-code"><div class="yz-code-head">Terminal</div><pre><code>git clone https://github.com/star031104/yingzhang-ai-ppt.git
-cd yingzhang-ai-ppt
-python -m venv .venv
-
-# Windows PowerShell
-./.venv/Scripts/Activate.ps1
-
-# macOS / Linux 改用：source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
-npm ci
-npx playwright install chromium</code></pre></div>
-
-<p>复制配置文件后，构建前端并启动完整应用：</p>
-
-<div class="yz-code"><div class="yz-code-head">Terminal</div><pre><code># Windows: Copy-Item .env.example .env
-# macOS / Linux: cp .env.example .env
-
-npm run build
-python -m uvicorn app.main:app --app-dir apps/api \
-  --host 127.0.0.1 --port 8000</code></pre></div>
-
-<p>FastAPI 会直接托管构建后的网页，因此本地生产式运行只需要一个服务进程。API 文档位于 <code>http://127.0.0.1:8000/docs</code>，健康检查位于 <code>/api/v1/health</code>。</p>
-
-<div class="yz-callout"><strong>公网部署提醒：</strong>默认监听地址仅供本机访问。若改为局域网或公网服务，需要自行配置 HTTPS、反向代理、身份认证、密钥管理、防火墙、备份和审计；首版不建议直接暴露 Uvicorn 端口。</div>
-
-<h2 id="模型配置"><a class="headerlink" href="#模型配置" title="模型配置"></a>七、模型配置与关键环境变量</h2>
-
-<p>首次进入应用后，在“模型配置”页面填写 OpenAI-Compatible Base URL、API Key 与模型名称，并先执行连接测试。API Key 不写入仓库，也不要放进 <code>.env.example</code>。不同模型服务对模型列表、视觉输入和结构化输出的兼容程度不同，建议先用少量页面验证。</p>
-
-<table><thead><tr><th>环境变量</th><th>默认值</th><th>作用</th></tr></thead><tbody>
-  <tr><td><code>SLIDEFORGE_DATABASE_URL</code></td><td><code>sqlite:///./runtime/data/yingzhang.db</code></td><td>本地数据库</td></tr>
-  <tr><td><code>SLIDEFORGE_ARTIFACT_ROOT</code></td><td><code>./runtime/artifacts</code></td><td>上传材料与生成产物</td></tr>
-  <tr><td><code>SLIDEFORGE_RENDER_CONCURRENCY</code></td><td><code>2</code></td><td>并行渲染页数；低内存设备可设为 1</td></tr>
-  <tr><td><code>SLIDEFORGE_LOCAL_ONLY_MODE</code></td><td><code>false</code></td><td>设为 true 后仅允许连接本机模型</td></tr>
-  <tr><td><code>SLIDEFORGE_PRIVATE_ACCOUNTS_MODE</code></td><td><code>false</code></td><td>本地个人部署保持关闭</td></tr>
-  <tr><td><code>SLIDEFORGE_OFFICE_EXECUTABLE</code></td><td>自动发现</td><td>可选 LibreOffice 可执行文件路径</td></tr>
-</tbody></table>
-
-<h2 id="完整用法"><a class="headerlink" href="#完整用法" title="完整用法"></a>八、完整用法：从新建项目到最终交付</h2>
-
-<ol>
-  <li><strong>描述任务：</strong>填写主题、受众、目标、时长、语气、页数与品牌要求。</li>
-  <li><strong>上传材料：</strong>导入报告、数据表、既有 PPTX、网页或图片。</li>
-  <li><strong>检查读取：</strong>核对章节、关键数字、表格、原文图和未读取部分。</li>
-  <li><strong>审阅大纲：</strong>确认页面顺序、每页核心任务和关键证据是否合理。</li>
-  <li><strong>生成候选：</strong>选择视觉技能，生成样张或整稿，并比较页面候选。</li>
-  <li><strong>局部精修：</strong>修改标题、要点、图表或对象；必要时只重生成目标页。</li>
-  <li><strong>运行门禁：</strong>处理内容遗漏、文字裁切、低对比度、来源与许可问题。</li>
-  <li><strong>导出复核：</strong>导出 HTML、PDF 或 PPTX，并在目标 Office 环境完成终检。</li>
-</ol>
-
-<p>“我的助手”可以按场景保存叙事和视觉偏好，也可以从用户确认过的修改中形成建议。学习默认受用户控制，支持暂停、单条遗忘、按场景清除和恢复空白工作区。每个新克隆实例都从空白数据开始，不包含维护者的习惯。</p>
-
-<h2 id="工程质量"><a class="headerlink" href="#工程质量" title="工程质量"></a>九、工程质量与目录结构</h2>
-
-<p>首版发布前通过 180 项 Python 测试、44 项演示引擎测试与 10 项前端测试，并完成 TypeScript 与 Vite 生产构建。测试覆盖材料解析、证据选择、任务恢复、页面版本、视觉安全、原生图表与表格、访问控制和个性化数据生命周期。</p>
-
-<div class="yz-code"><div class="yz-code-head">Project Structure</div><pre><code>yingzhang-ai-ppt/
-├─ apps/api/                 FastAPI、材料解析、任务与数据
-├─ apps/web/                 React 创作工作台
-├─ packages/
-│  ├─ presentation-engine/  HTML、PDF、PPTX 生成引擎
-│  ├─ scene-schema/         页面场景中间表示
-│  └─ skill-schema/         视觉技能约束
-├─ skills/visual/           内置视觉设计技能
-├─ benchmarks/              质量基准与公开样例
-├─ test-materials/          可复现验收材料
-├─ tests/                   Python 自动化测试
-└─ docs/adr/                架构决策记录</code></pre></div>
-
-<p>开发者可以运行以下命令完成主要验证：</p>
-
-<div class="yz-code"><div class="yz-code-head">Quality Checks</div><pre><code>python -m pytest
-npm run test:web
-npm run test:engine
-npm run build</code></pre></div>
-
-<h2 id="安全隐私"><a class="headerlink" href="#安全隐私" title="安全隐私"></a>十、安全、隐私与公开发布边界</h2>
-
-<ul class="yz-checklist">
-  <li><code>.env</code>、<code>runtime/</code>、<code>output/</code>、数据库、日志、个人经验与临时文件均被版本控制排除。</li>
-  <li>Provider 凭据优先保存在操作系统密钥环；不可用时才回退到本地加密文件。</li>
-  <li>公开仓库不包含真实账号、API Key、本机路径、个人默认偏好和内部版本报告。</li>
-  <li>上传敏感材料前，应确认所连接模型服务的数据处理、留存和训练政策。</li>
-  <li>如果密钥疑似泄漏，应立即在服务商后台撤销并重新生成；删除文件不能让旧密钥失效。</li>
-</ul>
-
-<h2 id="当前边界"><a class="headerlink" href="#当前边界" title="当前边界"></a>十一、当前边界：首版明确不承诺什么</h2>
+<p>整个系统围绕五个原则设计：</p>
 
 <ul>
-  <li>扫描版 PDF 尚不能保证可靠完成 OCR，需要先补充可检索文字。</li>
-  <li>复杂公式、特殊图表、第三方字体与既有动画可能需要人工修复。</li>
-  <li>模型生成内容可能包含事实错误，来源绑定不能替代人工核验。</li>
-  <li>网络图片的版权、商标和人物授权仍由使用者最终确认。</li>
-  <li>PowerPoint、WPS 与 LibreOffice 的字体、SVG、换行和动画表现可能不同。</li>
-  <li>首版接口与数据结构仍可能调整，不承诺向后兼容。</li>
+<li><strong>材料先于文案：</strong>先理解用户提供的文件，再决定演示中应该出现哪些信息；</li>
+<li><strong>证据先于结论：</strong>数字、判断和图表尽量保留来源位置与适用边界；</li>
+<li><strong>结构先于装饰：</strong>先确定受众、目标和叙事顺序，再选择页面布局；</li>
+<li><strong>候选先于覆盖：</strong>AI 生成的内容先进入候选区，由用户选择后再进入正式版本；</li>
+<li><strong>交付先于预览：</strong>网页中好看只是中间状态，最终还要得到可复核、可修改的 PPTX。</li>
 </ul>
 
-<div class="yz-callout"><strong>适合现在使用的场景：</strong>个人本地演示创作、课程或毕业答辩、内部报告、产品与业务方案原型，以及围绕“证据—叙事—视觉—交付”的二次开发。正式外部交付仍应保留人工终审。</div>
+<p>因此，映章更像一个演示项目的工作台。用户可以看到材料是否被正确读取、大纲为什么这样安排、某页引用了哪些信息、页面为什么没有通过检查，以及修改之后应该重新生成整套演示还是只修复当前页面。</p>
 
-<section class="yz-cta">
-  <h2>从首个公开版本开始使用映章</h2>
-  <p>完整源码、README、部署步骤、公开测试材料与架构决策已经整理到 GitHub。</p>
-  <div class="yz-actions"><a class="yz-button yz-button-primary" href="https://github.com/star031104/yingzhang-ai-ppt" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> 打开项目仓库</a><a class="yz-button yz-button-secondary" href="https://github.com/star031104/yingzhang-ai-ppt/raw/refs/heads/main/docs/examples/material-understanding.pptx" target="_blank" rel="noopener noreferrer">下载可编辑 PPTX 样例</a></div>
-</section>]]>
+<h2 id="二、整体架构：把一次生成拆成四层职责"><a href="#二、整体架构：把一次生成拆成四层职责" class="headerlink" title="二、整体架构：把一次生成拆成四层职责"></a>二、整体架构：把一次生成拆成四层职责</h2>
+
+<p>首版采用前后端分离的结构，但正式运行时可以由 FastAPI 统一提供前端页面和 API。这样既方便本地一键启动，也保留了前后端独立开发的空间。</p>
+
+<table>
+<thead><tr><th>层级</th><th>主要技术</th><th>负责的事情</th></tr></thead>
+<tbody>
+<tr><td>创作工作台</td><td>React 19、TypeScript、Vite</td><td>项目创建、材料上传、大纲审阅、页面候选、质量结果和导出操作</td></tr>
+<tr><td>API 与工作流</td><td>FastAPI、Pydantic、SQLAlchemy</td><td>任务编排、状态保存、模型调用、失败恢复和接口校验</td></tr>
+<tr><td>文档与演示引擎</td><td>PyMuPDF、python-docx、openpyxl、Playwright、PptxGenJS</td><td>材料解析、网页渲染、PDF 输出和可编辑 PPTX 生成</td></tr>
+<tr><td>本地数据与配置</td><td>SQLite、系统密钥环、文件存储</td><td>项目、证据、页面版本、生成产物与模型凭据</td></tr>
+</tbody>
+</table>
+
+<p>从输入到交付，核心链路可以概括为：</p>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">材料与创作要求</span><br><span class="line">→ 解析与来源登记</span><br><span class="line">→ 证据与内容选择</span><br><span class="line">→ 叙事和逐页规划</span><br><span class="line">→ 页面候选生成</span><br><span class="line">→ 内容与视觉检查</span><br><span class="line">→ 人工审阅和定向修复</span><br><span class="line">→ HTML / PDF / 可编辑 PPTX</span><br></pre></td></tr></table></figure>
+
+<p>这里最重要的不是箭头有多少，而是每一步都有自己的输入、输出和失败状态。材料解析失败时，不应该继续生成一个“看起来合理”的大纲；页面检查不通过时，也不应该直接把问题带进最终 PPTX。</p>
+
+<h2 id="三、材料理解：读取文件不等于理解文件"><a href="#三、材料理解：读取文件不等于理解文件" class="headerlink" title="三、材料理解：读取文件不等于理解文件"></a>三、材料理解：读取文件不等于理解文件</h2>
+
+<p>普通的文本提取只能得到一串字符，但演示生产真正需要的是结构。例如，一个数字属于哪一年的哪项指标，表格中的单位是什么，结论是在正文里明确给出的，还是由模型推测得到的。</p>
+
+<p>映章目前可以处理 PDF、DOCX、XLSX、CSV、PPTX、Markdown、HTML 和常见图片格式。解析阶段会尽可能保留下列信息：</p>
+
+<ul>
+<li>文档标题、章节层级和段落顺序；</li>
+<li>表格的行列关系、单位、表头和计算值；</li>
+<li>图片、图表与它们在原文中的上下文；</li>
+<li>关键数字、结论、限制条件和来源位置；</li>
+<li>扫描文档、缺失公式结果或内容截断等风险。</li>
+</ul>
+
+<p>解析结果不会直接变成幻灯片文案，而是先进入证据层。每条准备进入演示的主张，都可以关联到原始文件、章节或表格区域。这样做虽然比“把全文扔进提示词”更慢，但能够显著减少数字失真和断章取义。</p>
+
+<figure>
+<img src="/img/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/yingzhang-material-understanding.webp" alt="映章材料理解与证据组织界面" loading="lazy" decoding="async">
+<figcaption>材料先被解析并登记来源，再参与大纲和页面生成。</figcaption>
+</figure>
+
+<h2 id="四、叙事规划：先回答为什么讲，再决定每页讲什么"><a href="#四、叙事规划：先回答为什么讲，再决定每页讲什么" class="headerlink" title="四、叙事规划：先回答为什么讲，再决定每页讲什么"></a>四、叙事规划：先回答为什么讲，再决定每页讲什么</h2>
+
+<p>同一组材料，面对老师、客户或项目组时，应该得到完全不同的讲法。页数也不能简单按材料长度平均分配，因为背景、问题、证据和结论在不同场景中的权重并不相同。</p>
+
+<p>创建项目时，映章会先收集受众、演示目标、预计时长、语言、语气、品牌要求和输出比例。随后生成演示级叙事结构，再把它拆成逐页计划。</p>
+
+<p>每一页不是只有一个标题，而是有一份页面契约，主要包括：</p>
+
+<ul>
+<li>这一页在整套演示中的角色；</li>
+<li>希望观众记住的核心主张；</li>
+<li>支撑主张的证据及其来源；</li>
+<li>适合采用的数据图、时间线、流程或对比关系；</li>
+<li>文字预算、对象数量和版面限制；</li>
+<li>与前后页面之间的承接关系。</li>
+</ul>
+
+<p>页面契约把“写内容”和“做版式”之间的责任分开。模型可以提出视觉方案，但不能为了排版方便擅自删掉必要证据，也不能把一个限定性结论改写成绝对判断。</p>
+
+<h2 id="五、页面生成：候选、检查和修复是三个阶段"><a href="#五、页面生成：候选、检查和修复是三个阶段" class="headerlink" title="五、页面生成：候选、检查和修复是三个阶段"></a>五、页面生成：候选、检查和修复是三个阶段</h2>
+
+<p>页面生成没有采用“一次生成，直接定稿”的方式。对于重要页面，系统可以根据同一份页面契约生成多个候选，再从信息完整性、可读性、视觉层级和布局风险等角度进行比较。</p>
+
+<p>检查主要分成三类：</p>
+
+<table>
+<thead><tr><th>检查类型</th><th>典型问题</th><th>处理方式</th></tr></thead>
+<tbody>
+<tr><td>内容完整性</td><td>关键结论缺失、数字与来源不一致、限定条件被省略</td><td>回到证据或页面契约重新生成内容</td></tr>
+<tr><td>视觉质量</td><td>文字溢出、字号过小、对齐异常、对比度不足</td><td>只调整受影响对象或重新选择布局</td></tr>
+<tr><td>交付风险</td><td>字体替换、外部素材许可、Office 渲染差异</td><td>给出提示并在目标环境中复核</td></tr>
+</tbody>
+</table>
+
+<p>用户选定某个候选后，该选择会受到保护。后续如果只修改一个数字或标题，系统应尽量局部修复，而不是重新生成整页并破坏已经确认的布局。</p>
+
+<p>长任务也被拆成有界步骤。某一页失败时，可以从该页继续；模型超时或渲染中断时，已经完成并通过检查的页面不需要全部重做。这一点对十几页以上的演示尤其重要。</p>
+
+<h2 id="六、交付格式：网页预览只是中间结果"><a href="#六、交付格式：网页预览只是中间结果" class="headerlink" title="六、交付格式：网页预览只是中间结果"></a>六、交付格式：网页预览只是中间结果</h2>
+
+<p>映章可以输出 HTML、PDF 和 PPTX。HTML 适合快速预览，PDF 适合固定版式，而 PPTX 才是多数演示任务真正需要继续修改和现场播放的格式。</p>
+
+<p>首版在导出 PPTX 时，优先把以下内容保留为原生对象：</p>
+
+<ul>
+<li>标题、正文、标签和注释等文本框；</li>
+<li>柱状图、折线图和饼图等常见图表；</li>
+<li>数据表、时间线、流程图、层级图和关系图；</li>
+<li>基础形状、分隔线、背景区域和页面编号。</li>
+</ul>
+
+<p>这意味着用户可以在 PowerPoint 或 WPS 中继续改字、换色、移动对象，而不是拿到一张铺满整页的截图。图片和复杂视觉仍可能以位图或 SVG 形式进入文件，但正文结构不会为了“看起来一致”而全部栅格化。</p>
+
+<h2 id="七、本地部署：克隆项目后如何运行"><a href="#七、本地部署：克隆项目后如何运行" class="headerlink" title="七、本地部署：克隆项目后如何运行"></a>七、本地部署：克隆项目后如何运行</h2>
+
+<p>运行环境需要 Git、Python 3.11 或更高版本、Node.js 20 或更高版本，以及至少一个兼容 OpenAI API 的模型服务。模型可以来自云端，也可以是运行在本机的兼容服务。</p>
+
+<h3 id="1-Windows-一键启动"><a href="#1-Windows-一键启动" class="headerlink" title="1. Windows 一键启动"></a>1. Windows 一键启动</h3>
+
+<p>Windows 用户可以直接使用仓库中的启动脚本：</p>
+
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/star031104/yingzhang-ai-ppt.git</span><br><span class="line">cd yingzhang-ai-ppt</span><br><span class="line">Copy-Item .env.example .env</span><br><span class="line">./启动项目.cmd</span><br></pre></td></tr></table></figure>
+
+<p>启动脚本会检查 Python 与 Node.js 环境、安装缺失依赖、构建前端、启动后端服务，并打开 <code>http://127.0.0.1:8000</code>。首次安装依赖需要联网，后续启动会更快。</p>
+
+<p>如果 8000 端口已经被占用，可以指定其他端口：</p>
+
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-local.ps1 -Port 8001</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-Windows、macOS-与-Linux-手动安装"><a href="#2-Windows、macOS-与-Linux-手动安装" class="headerlink" title="2. Windows、macOS 与 Linux 手动安装"></a>2. Windows、macOS 与 Linux 手动安装</h3>
+
+<p>手动方式适合 macOS、Linux，以及需要调试前后端的 Windows 用户。创建虚拟环境后，先按系统激活它：</p>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/star031104/yingzhang-ai-ppt.git</span><br><span class="line">cd yingzhang-ai-ppt</span><br><span class="line">python -m venv .venv</span><br><span class="line"># Windows PowerShell: ./.venv/Scripts/Activate.ps1</span><br><span class="line"># macOS / Linux: source .venv/bin/activate</span><br><span class="line">python -m pip install --upgrade pip</span><br></pre></td></tr></table></figure>
+
+<p>安装项目依赖和 Chromium：</p>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">python -m pip install -e ".[dev]"</span><br><span class="line">npm ci</span><br><span class="line">npx playwright install chromium</span><br></pre></td></tr></table></figure>
+
+<p>复制环境变量模板、构建前端并启动应用：</p>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cp .env.example .env</span><br><span class="line">npm run build</span><br><span class="line">python -m uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000</span><br><span class="line"># 浏览器打开 http://127.0.0.1:8000</span><br></pre></td></tr></table></figure>
+
+<p>Windows PowerShell 中复制配置文件应使用 <code>Copy-Item .env.example .env</code>。启动后还可以访问 <code>/docs</code> 查看 API 文档，访问 <code>/api/v1/health</code> 检查服务状态。</p>
+
+<h2 id="八、模型配置：密钥只保存在当前设备"><a href="#八、模型配置：密钥只保存在当前设备" class="headerlink" title="八、模型配置：密钥只保存在当前设备"></a>八、模型配置：密钥只保存在当前设备</h2>
+
+<p>第一次进入系统后，需要在“模型配置”页面填写兼容 OpenAI API 的服务地址、API Key 和模型名称，并先执行连接测试。不同服务对视觉输入、结构化输出、模型列表和超时策略的支持不同，建议先生成少量页面确认效果，再开始较长任务。</p>
+
+<table>
+<thead><tr><th>配置项</th><th>作用</th><th>建议</th></tr></thead>
+<tbody>
+<tr><td>Base URL</td><td>模型服务的 OpenAI-Compatible 接口地址</td><td>本地模型通常使用 <code>127.0.0.1</code> 地址</td></tr>
+<tr><td>API Key</td><td>服务鉴权凭据</td><td>只在应用内填写，不要写入仓库文件</td></tr>
+<tr><td>模型名称</td><td>实际用于规划和生成的模型</td><td>应与服务商返回的模型标识完全一致</td></tr>
+<tr><td>本地模式</td><td>限制系统只访问本机模型和素材地址</td><td>处理敏感材料时可启用</td></tr>
+</tbody>
+</table>
+
+<p>模型凭据优先进入操作系统密钥环；当系统密钥环不可用时，才回退到本地加密文件。公开仓库中的 <code>.env.example</code> 只有配置名称和安全默认值，不包含真实密钥。</p>
+
+<h2 id="九、完整用法：从新建项目到最终交付"><a href="#九、完整用法：从新建项目到最终交付" class="headerlink" title="九、完整用法：从新建项目到最终交付"></a>九、完整用法：从新建项目到最终交付</h2>
+
+<h3 id="1-创建演示项目"><a href="#1-创建演示项目" class="headerlink" title="1. 创建演示项目"></a>1. 创建演示项目</h3>
+
+<p>填写演示主题、目标受众、沟通目的、预计时长、语言和视觉要求。这里的信息会直接影响大纲结构和页面密度，最好写清楚“观众听完以后应该理解什么或做什么”。</p>
+
+<h3 id="2-上传并检查材料"><a href="#2-上传并检查材料" class="headerlink" title="2. 上传并检查材料"></a>2. 上传并检查材料</h3>
+
+<p>上传 Word、PDF、Excel、旧 PPTX、Markdown、网页或图片。材料解析完成后，先检查章节、表格、数字、图片和提示信息。扫描版 PDF 或复杂公式如果没有被正确识别，应先补充可读取的文本，而不是直接继续。</p>
+
+<h3 id="3-连接模型"><a href="#3-连接模型" class="headerlink" title="3. 连接模型"></a>3. 连接模型</h3>
+
+<p>在模型配置中完成连接测试。图片模型不是必需项；未配置时，系统仍可以使用材料中的图片、原生图表和基础视觉结构完成演示。</p>
+
+<h3 id="4-生成并审阅大纲"><a href="#4-生成并审阅大纲" class="headerlink" title="4. 生成并审阅大纲"></a>4. 生成并审阅大纲</h3>
+
+<p>重点检查页面顺序、论证是否完整、每页是否只有一个清晰任务，以及关键证据是否被分配到正确的位置。大纲阶段改动的成本最低，不建议跳过。</p>
+
+<h3 id="5-生成页面候选"><a href="#5-生成页面候选" class="headerlink" title="5. 生成页面候选"></a>5. 生成页面候选</h3>
+
+<p>为页面生成候选后，比较信息层级、图文关系和阅读负担。选择最接近目标的一版，再修改文字、颜色或局部对象。已经确认的候选不会因为其他页面重生成而自动被替换。</p>
+
+<h3 id="6-运行质量检查"><a href="#6-运行质量检查" class="headerlink" title="6. 运行质量检查"></a>6. 运行质量检查</h3>
+
+<p>处理缺失内容、文字溢出、对比度、来源、素材许可和导出兼容性问题。对于只影响单个对象的问题，优先使用定向修复，避免重新生成整页。</p>
+
+<h3 id="7-导出并在目标软件中复核"><a href="#7-导出并在目标软件中复核" class="headerlink" title="7. 导出并在目标软件中复核"></a>7. 导出并在目标软件中复核</h3>
+
+<p>导出 PPTX 后，应在实际使用的 PowerPoint、WPS 或 LibreOffice 中检查字体替换、换行、图表、SVG 和媒体对象。不同 Office 软件的文本度量并不完全一致，正式演示前的人工检查仍然必要。</p>
+
+<h2 id="十、工程结构与当前测试状态"><a href="#十、工程结构与当前测试状态" class="headerlink" title="十、工程结构与当前测试状态"></a>十、工程结构与当前测试状态</h2>
+
+<p>项目按 API、前端和演示引擎拆分，公开仓库的主要目录如下：</p>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">yingzhang-ai-ppt/</span><br><span class="line">├─ apps/api/                  FastAPI、工作流与持久化</span><br><span class="line">├─ apps/web/                  React 创作工作台</span><br><span class="line">├─ packages/presentation-engine/  HTML、PDF 与 PPTX 引擎</span><br><span class="line">├─ packages/scene-schema/     页面场景中间表示</span><br><span class="line">├─ skills/visual/             内置视觉设计约束</span><br><span class="line">├─ tests/                     Python 自动化测试</span><br><span class="line">└─ test-materials/            可公开的验收材料</span><br></pre></td></tr></table></figure>
+
+<p>首个公开版本发布前完成了三组自动化验证：</p>
+
+<ul>
+<li>Python API、工作流与文档解析测试：180 项；</li>
+<li>演示生成引擎测试：44 项；</li>
+<li>前端组件测试：10 项；</li>
+<li>前端生产构建通过。</li>
+</ul>
+
+<p>这些测试主要覆盖接口、材料解析、状态流转、页面场景和导出逻辑。它们能够减少回归问题，但不能证明所有模型输出都正确，也不能替代不同 Office 环境中的人工验收。</p>
+
+<h2 id="十一、公开版本的数据与隐私边界"><a href="#十一、公开版本的数据与隐私边界" class="headerlink" title="十一、公开版本的数据与隐私边界"></a>十一、公开版本的数据与隐私边界</h2>
+
+<p>公开前，我重新整理了仓库边界。所有克隆实例都从空白工作区开始，不携带维护者的账号、项目数据、模型配置或个人使用习惯。</p>
+
+<p>以下内容不会进入版本控制：</p>
+
+<ul>
+<li><code>.env</code> 与真实 API Key；</li>
+<li><code>runtime/</code>、数据库、日志和临时任务状态；</li>
+<li><code>output/</code> 中的个人生成结果；</li>
+<li>个人经验、界面偏好和本地模型配置；</li>
+<li>内部版本记录、阶段总结和其他历史 <code>.docx</code> 文档。</li>
+</ul>
+
+<p>本地运行并不自动等于满足组织级安全要求。如果把系统开放到局域网或公网，仍然需要单独配置身份认证、HTTPS、访问控制、防火墙、备份和审计。首版默认监听 <code>127.0.0.1</code>，不建议直接把 Uvicorn 端口暴露到公网。</p>
+
+<h2 id="十二、当前边界与这次开发的结论"><a href="#十二、当前边界与这次开发的结论" class="headerlink" title="十二、当前边界与这次开发的结论"></a>十二、当前边界与这次开发的结论</h2>
+
+<p>映章现在已经完成了从材料上传到多格式导出的基本闭环，但它仍然是首个公开版本。</p>
+
+<p>扫描版 PDF 的文字识别、复杂公式、特殊图表、第三方字体和既有 PPT 动画仍可能需要人工处理。模型也可能生成事实错误；证据绑定能够让问题更容易被发现，却不能替代最终核验。网络图片涉及的版权、商标和人物授权，也仍然由使用者确认。</p>
+
+<p>这次开发让我更明确了一件事：专业演示的价值不在于一次生成了多少页面，而在于内容是否有依据、结构是否能够解释、修改是否可控，最后得到的文件是否真的能继续工作。</p>
+
+<p>映章的后续开发也会围绕这条边界继续推进。首版先把材料、证据、页面和交付串成一条可靠链路，再逐步完善扫描文档处理、复杂视觉、协作审阅和 Office 兼容性。</p>
+
+<p>项目仓库：<a href="https://github.com/star031104/yingzhang-ai-ppt" target="_blank" rel="noopener noreferrer">github.com/star031104/yingzhang-ai-ppt</a></p>
+
+<p>首个公开版本：<a href="https://github.com/star031104/yingzhang-ai-ppt/tree/v0.1.0" target="_blank" rel="noopener noreferrer">v0.1.0</a></p>]]>
     </content>
     <id>https://star031104-github-io.pages.dev/2026/09/04/yingzhang-ai-ppt/</id>
     <link href="https://star031104-github-io.pages.dev/2026/09/04/yingzhang-ai-ppt/"/>
     <published>2026-09-04T08:00:00.000Z</published>
-    <summary>映章 YingZhang v0.1.0 首个公开版本：详解证据驱动的 AI 演示架构、材料理解、多候选视觉、有界工作流、本地部署、模型配置、完整用法与隐私边界。</summary>
-    <title>映章 YingZhang v0.1.0：完整架构、部署与使用指南</title>
-    <updated>2026-09-14T02:00:00.000Z</updated>
+    <summary>映章 YingZhang 首个公开版本开发报告：从真实演示任务出发，介绍材料理解、证据组织、叙事规划、页面候选、可编辑 PPTX、本地部署与完整使用流程。</summary>
+    <title>映章 YingZhang 开发报告：让 AI 演示从生成走向可交付</title>
+    <updated>2026-09-14T04:00:00.000Z</updated>
   </entry>
   <entry>
     <author>
