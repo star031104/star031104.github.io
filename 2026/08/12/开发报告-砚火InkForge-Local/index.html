@@ -1,0 +1,235 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>从一句灵感到一部长篇：我如何把 InkForge Local 重构成可靠的本地 AI 小说工作台 | 浅梦的博客</title><meta name="author" content="浅梦"><meta name="copyright" content="浅梦"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f5f7fc"><meta name="description" content="从一句灵感到一部长篇，完整复盘 InkForge Local v0.33.1 如何用可恢复工作流、证据记忆、Canon Lock、单&#x2F;双模型路由与本地数据保护解决 AI 长篇创作难题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从一句灵感到一部长篇：我如何把 InkForge Local 重构成可靠的本地 AI 小说工作台">
+<meta property="og:url" content="https://star031104-github-io.pages.dev/2026/08/12/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E7%A0%9A%E7%81%ABInkForge-Local/">
+<meta property="og:site_name" content="浅梦的博客">
+<meta property="og:description" content="从一句灵感到一部长篇，完整复盘 InkForge Local v0.33.1 如何用可恢复工作流、证据记忆、Canon Lock、单&#x2F;双模型路由与本地数据保护解决 AI 长篇创作难题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://star031104-github-io.pages.dev/img/generated-covers/inkforge-local-image25.webp">
+<meta property="article:published_time" content="2026-08-12T08:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-25T15:40:00.000Z">
+<meta property="article:author" content="浅梦">
+<meta property="article:tag" content="AI 写作">
+<meta property="article:tag" content="FastAPI">
+<meta property="article:tag" content="SQLite">
+<meta property="article:tag" content="本地大模型">
+<meta property="article:tag" content="长篇小说">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://star031104-github-io.pages.dev/img/generated-covers/inkforge-local-image25.webp"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "从一句灵感到一部长篇：我如何把 InkForge Local 重构成可靠的本地 AI 小说工作台",
+  "url": "https://star031104-github-io.pages.dev/2026/08/12/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E7%A0%9A%E7%81%ABInkForge-Local/",
+  "image": "https://star031104-github-io.pages.dev/img/generated-covers/inkforge-local-image25.webp",
+  "datePublished": "2026-08-12T08:00:00.000Z",
+  "dateModified": "2026-09-25T15:40:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "浅梦",
+      "url": "https://star031104-github-io.pages.dev"
+    }
+  ],
+  "inLanguage": "zh-CN",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://star031104-github-io.pages.dev/2026/08/12/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E7%A0%9A%E7%81%ABInkForge-Local/"
+  },
+  "isPartOf": {
+    "@type": "Blog",
+    "name": "浅梦的博客",
+    "url": "https://star031104-github-io.pages.dev/"
+  }
+}</script><link rel="shortcut icon" href="/img/favicon-32.png?v=20260810"><link rel="canonical" href="https://star031104-github-io.pages.dev/2026/08/12/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E7%A0%9A%E7%81%ABInkForge-Local/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//static.cloudflareinsights.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0b1020')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f5f7fc')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script defer="defer" data-pjax="data-pjax" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon="{&quot;token&quot;: &quot;5450bf48e922459b89595f98ee94e6f9&quot;}"></script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '从一句灵感到一部长篇：我如何把 InkForge Local 重构成可靠的本地 AI 小说工作台',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css?v=20260914-2"><link rel="stylesheet" href="/css/professional.css?v=20260811"><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="浅梦的博客" type="application/atom+xml">
+<meta name="color-scheme" content="light dark"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="浅梦的博客"><link rel="manifest" href="/site.webmanifest"><link rel="preload" as="image" href="/img/generated-covers/inkforge-local-image25.webp" type="image/webp" fetchpriority="high"><meta name="twitter:title" content="从一句灵感到一部长篇：我如何把 InkForge Local 重构成可靠的本地 AI 小说工作台"><meta name="twitter:description" content="从一句灵感到一部长篇，完整复盘 InkForge Local v0.33.1 如何用可恢复工作流、证据记忆、Canon Lock、单&#x2F;双模型路由与本地数据保护解决 AI 长篇创作难题。"><meta property="og:image:type" content="image/webp"></head><body><a class="skip-link" href="#content-inner">跳至主要内容</a><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="浅梦的头像" loading="eager" decoding="async" width="320" height="320"></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">32</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 技术文档</span></a></div><div class="menus_item"><a class="site-page" href="/reports/"><i class="fa-fw fas fa-tools"></i><span> 开发报告</span></a></div><div class="menus_item"><a class="site-page" href="/essays/"><i class="fa-fw fas fa-pen"></i><span> 随笔</span></a></div><div class="menus_item"><a class="site-page" href="/photos/"><i class="fa-fw fas fa-image"></i><span> 图片</span></a></div><div class="menus_item"><a class="site-page" href="/videos/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/img/generated-covers/inkforge-local-image25.webp);"><nav id="nav" aria-label="主导航"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">浅梦的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">从一句灵感到一部长篇：我如何把 InkForge Local 重构成可靠的本地 AI 小说工作台</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search" role="button" tabindex="0" aria-label="打开站内搜索"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/docs/"><i class="fa-fw fas fa-book"></i><span> 技术文档</span></a></div><div class="menus_item"><a class="site-page" href="/reports/"><i class="fa-fw fas fa-tools"></i><span> 开发报告</span></a></div><div class="menus_item"><a class="site-page" href="/essays/"><i class="fa-fw fas fa-pen"></i><span> 随笔</span></a></div><div class="menus_item"><a class="site-page" href="/photos/"><i class="fa-fw fas fa-image"></i><span> 图片</span></a></div><div class="menus_item"><a class="site-page" href="/videos/"><i class="fa-fw fas fa-video"></i><span> 视频</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><span class="site-page" role="button" tabindex="0" aria-label="打开导航菜单"><i class="fas fa-bars fa-fw" aria-hidden="true"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">从一句灵感到一部长篇：我如何把 InkForge Local 重构成可靠的本地 AI 小说工作台</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-12T08:00:00.000Z" title="发表于 2026-08-12 16:00:00">2026-08-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-25T15:40:00.000Z" title="更新于 2026-09-25 23:40:00">2026-09-25</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A/">开发报告</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner" tabindex="-1"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:365,&quot;messagePrev&quot;:&quot;本文距上次更新已过去&quot;,&quot;messageNext&quot;:&quot;天，部分技术细节可能已经发生变化，请结合最新文档阅读。&quot;,&quot;postUpdate&quot;:&quot;2026-09-25 23:40:00&quot;}" hidden></div><p>AI 很容易续写一段文字，却很难稳定地参与一部长篇小说。</p>
+<p>当作品进入十章、三十章甚至更长的尺度后，真正棘手的问题通常不再是“这一段写得是否流畅”，而是人物是否记得自己见过谁、伏笔是否按计划推进、角色关系有没有无故跳变、早期设定修改后后续记忆是否仍然可信，以及一次生成失败会不会让几小时的工作全部重来。</p>
+<p>这也是我开发 <strong>砚火（InkForge Local）</strong> 的出发点：它不是一个只有输入框和“续写”按钮的网页，而是一套面向中文长篇与同人创作的本地 AI 写作工作台。它希望让模型真正进入“灵感—规划—拆章—写作—审校—修订—记忆”的完整生产流程，同时把作品方向和最终决定权留在作者手中。</p>
+<p>项目地址：<a target="_blank" rel="noopener noreferrer" href="https://github.com/star031104/inkforge-local">https://github.com/star031104/inkforge-local</a></p>
+<p>最新版本：<a target="_blank" rel="noopener noreferrer" href="https://github.com/star031104/inkforge-local/releases/latest">https://github.com/star031104/inkforge-local/releases/latest</a></p>
+<h2 id="为什么普通的-AI-对话难以完成长篇小说"><a href="#为什么普通的-AI-对话难以完成长篇小说" class="headerlink" title="为什么普通的 AI 对话难以完成长篇小说"></a>为什么普通的 AI 对话难以完成长篇小说</h2><p>对话式写作工具最常见的做法，是把人物卡、大纲、前文和写作要求一起放入上下文，然后让模型继续生成。短篇或单场景写作中，这种方法往往足够有效；但在长篇项目里，它会迅速暴露出几个结构性问题。</p>
+<p>首先，上下文并不等于记忆。模型看见了一段资料，不代表它能够区分永久设定、人物当前状态、未经证实的推断和已经失效的旧信息。其次，完整作品不可能永远塞进一次请求。简单裁剪又很容易丢掉真正影响当前章节的事实。再次，模型输出本身并不可靠：它可能生成残缺 JSON、重复前文、虚构人物知情，或者在请求中断后留下一个无法判断是否完成的状态。</p>
+<p>更重要的是，小说不是一次性生成品。作者会反复修改前文、调整人物动机、推翻某条支线。写作系统必须知道哪些记忆由哪一章正文产生，并在正文改变后让相关派生状态失效。否则，“长期记忆”反而会成为错误扩散的来源。</p>
+<p>因此，InkForge 的核心问题不是“怎样多塞一些提示词”，而是怎样建立一套可以追踪、验证、恢复和修订的创作系统。</p>
+<h2 id="从灵感开始，由-AI-协助完成整本书的生产流程"><a href="#从灵感开始，由-AI-协助完成整本书的生产流程" class="headerlink" title="从灵感开始，由 AI 协助完成整本书的生产流程"></a>从灵感开始，由 AI 协助完成整本书的生产流程</h2><p>InkForge 把小说生产拆成几个彼此衔接的阶段。</p>
+<h3 id="1-灵感孵化"><a href="#1-灵感孵化" class="headerlink" title="1. 灵感孵化"></a>1. 灵感孵化</h3><p>用户只需要输入一句人物设想、一个冲突或一个场景片段，AI 会扩展出两套完整但方向不同的开书方案。方案包括作品定位、核心人物、世界规则、主题命题、主要冲突和长篇故事发动机。作者比较并确认方向后，再创建为正式作品，原有作品不会被悄悄覆盖。</p>
+<h3 id="2-全书与分卷规划"><a href="#2-全书与分卷规划" class="headerlink" title="2. 全书与分卷规划"></a>2. 全书与分卷规划</h3><p>系统先确定整部作品“为什么发生变化”，再处理每一卷“必须发生什么”，最后拆解到每一章的目标、阻力、转折和章末变化。规划不是一串孤立的剧情点，而是具有因果关系和阶段职责的导演蓝图。</p>
+<p>对于不希望被固定模板限制的作品，系统提供因果与人物、悬疑、关系、冒险、观察和自定义等叙事策略；同时保留经典的十二岗位规划模式，适合需要严格结构分工的项目。</p>
+<h3 id="3-批量建章与逐章创作"><a href="#3-批量建章与逐章创作" class="headerlink" title="3. 批量建章与逐章创作"></a>3. 批量建章与逐章创作</h3><p>全书规划可以批量生成章节路线，章节再被细化为场景级执行计划。每次正文生成都会组合当前章之前的可信事实、人物状态、关系、时间线、伏笔、世界书、作者偏好和相关旧正文，而不是把整本小说无差别塞进提示词。</p>
+<p>生成结果先进入候选稿。作者可以比较、局部采用、继续修改或完全放弃。只有明确接纳后，正文才会写入作品并进入后续记忆结算流程。</p>
+<h3 id="4-审校、精修与长期记忆"><a href="#4-审校、精修与长期记忆" class="headerlink" title="4. 审校、精修与长期记忆"></a>4. 审校、精修与长期记忆</h3><p>InkForge 会检查长度、截断、重复原文、循环措辞、AI 套话、现代术语、人物知情、关系变化、道具、伤势、位置、时间和世界规则。AI 自动精修可以逐章执行审校、修订、重新审校、硬规则扫描和记忆更新。</p>
+<p>如果某章没有达到目标质量，候选稿会保留在检查点中，不会覆盖原正文。自动创作和自动精修任务都支持暂停与恢复；即使关闭浏览器，本地服务仍会保存任务进度，重新打开后可以继续。</p>
+<h2 id="让长篇不跑偏：事实、证据与时间边界"><a href="#让长篇不跑偏：事实、证据与时间边界" class="headerlink" title="让长篇不跑偏：事实、证据与时间边界"></a>让长篇不跑偏：事实、证据与时间边界</h2><p>InkForge 的项目 JSON 是作品事实源，SQLite 负责事务、版本、后台任务和可重建检索索引。模型输出不能直接成为权威事实，只能形成候选内容或带证据的派生状态。</p>
+<p>每一条人物状态、知情、关系、时间线和伏笔更新，都必须绑定到已经接纳的正文证据。系统会记录正文哈希：同一正文重复结算不会制造重复事实；正文改变后，旧记忆提交会被拒绝，受影响章节之后的派生状态也会被标记为需要重建。</p>
+<p>这种设计尤其适合长篇修改。假设作者重写了第五章中一次关键会面，那么依赖旧版本的后续人物知情与关系状态不应该继续被当作真相。InkForge 会保留正文，但隔离不再可信的旧派生状态，并提示从受影响章节开始按顺序重新结算。</p>
+<p>检索同样遵守时间边界。生成第十章时，系统不会注入第十一章之后才发生的动态状态；人物“作者层真相”、读者已经看到的信息，以及角色有证据知道的信息也会分开编译。这能显著减少未来信息泄漏和角色凭空知情。</p>
+<h2 id="同人创作中的-Canon-Lock"><a href="#同人创作中的-Canon-Lock" class="headerlink" title="同人创作中的 Canon Lock"></a>同人创作中的 Canon Lock</h2><p>同人作品除了连续性，还要面对角色 OOC 和原作资料可信度问题。</p>
+<p>InkForge 可以为原作角色建立 Canon Profile，保存原作、时间节点、人格、价值观、能力限制、语言模式、行为模式、情绪模式和禁止 OOC 清单。上传的原作资料可以由 AI 生成待核对档案，但只有作者确认后，它才会成为高优先级约束。</p>
+<p>正文接受前可以运行 Canon Gate，检查角色是否出现明显性格偏移、无铺垫关系突变或高风险样文复刻。资料结论保留来源与证据，模型推断不会因为写得像真的，就自动升级成原作事实。</p>
+<h2 id="一个模型或两个模型，由用户决定"><a href="#一个模型或两个模型，由用户决定" class="headerlink" title="一个模型或两个模型，由用户决定"></a>一个模型或两个模型，由用户决定</h2><p>InkForge 不再使用容易混淆的“单模型 GLM”“双模型 GLM”等概念。界面只提供清晰的两种选择：使用一个模型，或使用两个模型。</p>
+<p>模型 1 通常负责正文、续写和修订；模型 2 通常负责规划、审计和信息提取。两边都配置有效 Key 时，系统自动分工；如果只填写一个 Key，全部任务会自动交给可用模型。每个位置都可以独立选择智谱、ModelScope、本地 llama.cpp，或任意 OpenAI-Compatible 服务。</p>
+<p>这意味着作者可以用同一个模型完成全部工作，也可以把擅长文学表达的模型用于正文，把擅长结构化推理的模型用于规划。模型可以更换，但人物、世界观、Canon、知识图谱和章节记忆不会随 Provider 一起丢失。</p>
+<h2 id="v0-33-1：从功能原型到工程化项目"><a href="#v0-33-1：从功能原型到工程化项目" class="headerlink" title="v0.33.1：从功能原型到工程化项目"></a>v0.33.1：从功能原型到工程化项目</h2><p>这次重构的重点不仅是增加功能，更是让项目具备长期维护和可靠发布的基础。</p>
+<p>后端现在采用明确的分层架构：API 层负责请求契约与状态码，领域层保存无 I&#x2F;O 的故事规则，服务层编排模型工作流，基础设施层负责 SQLite、检索、凭据和备份，统一入口负责服务进程、日志、端口和健康检查。前端也按项目状态、生成、规划、资料、审校、治理、自动导演和场景工具拆分，避免所有逻辑堆在一个脚本中。</p>
+<p>保存操作使用乐观并发控制。另一个窗口或后台任务更新作品后，旧页面不能静默覆盖新版本，而会提示重新加载或导出副本。模型调用只记录任务、耗时、重试和 token 统计，不保存正文、提示词、接口地址和密钥。</p>
+<p>模型 Key 与作品数据库分离：Windows 上使用当前用户的 DPAPI 加密写盘，不进入项目历史、JSON 导出或作品备份。SQLite 使用 WAL 和写入等待保护，自动备份跟随应用生命周期运行。恢复备份前会创建当前数据库安全快照，校验或恢复失败时自动回滚。</p>
+<h2 id="真正面向普通用户的-Windows-部署"><a href="#真正面向普通用户的-Windows-部署" class="headerlink" title="真正面向普通用户的 Windows 部署"></a>真正面向普通用户的 Windows 部署</h2><p>源码项目如果只能由开发者安装依赖，就很难成为真正可用的创作工具。因此 v0.33.1 同时提供自动部署版和便携版。</p>
+<p>普通 Windows 用户可以下载 <code>InkForge-Deploy-0.33.1-win64.zip</code>，解压后双击 <code>InkForgeLauncher.exe</code>。启动器会检查运行环境，缺失时从固定的 Python 官方地址下载并校验安装包，再建立与应用版本、依赖指纹绑定的隔离环境。环境准备完成后会自动启动服务并打开工作台，以后启动会直接复用缓存。</p>
+<p>便携版包含完整运行目录，适合离线保存或固定环境部署。两种发行方式都会把作品、凭据、日志和备份保存在当前用户的数据目录中，因此更新或重新解压程序不会覆盖小说。</p>
+<h2 id="测试与质量保障"><a href="#测试与质量保障" class="headerlink" title="测试与质量保障"></a>测试与质量保障</h2><p>一次成功启动并不能证明长篇系统可靠。当前版本建立了覆盖领域规则、项目版本、数据恢复、任务检查点、模型传输、静态资源和工程契约的自动化测试。</p>
+<p>v0.33.1 已通过 69 项自动化测试、13 项离线质量评估和 11 个前端脚本语法检查。GitHub Actions 在 Windows 与 Linux、Python 3.10 与 3.12 的组合上执行编译、项目契约、Ruff、测试、离线评估和静态资源检查。</p>
+<p>对于真实模型，还提供隔离的验收运行器，可以验证单模型、双模型、连续多章生成，以及服务被强制终止后的检查点恢复。真实调用结果和日志会写入隔离目录，并自动清除密钥等敏感信息。</p>
+<p>当然，自动测试不能判断一部小说是否真正动人。它能做的是守住工程底线：正文不能莫名丢失，任务必须能够恢复，事实需要证据，未来信息不能提前泄漏，模型异常不能悄悄破坏已确认内容。文学判断依然属于作者。</p>
+<h2 id="如何开始使用"><a href="#如何开始使用" class="headerlink" title="如何开始使用"></a>如何开始使用</h2><ol>
+<li>打开 <a target="_blank" rel="noopener noreferrer" href="https://github.com/star031104/inkforge-local/releases/latest">GitHub Releases</a>。</li>
+<li>Windows 用户下载自动部署包并解压。</li>
+<li>双击 <code>InkForgeLauncher.exe</code>，等待首次环境准备完成。</li>
+<li>打开右上角“模型设置”，配置一个或两个模型。</li>
+<li>从一句灵感开始孵化，也可以创建空白作品后手动规划。</li>
+</ol>
+<p>开发者也可以直接运行源码：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/star031104/inkforge<span class="literal">-local</span>.git</span><br><span class="line"><span class="built_in">cd</span> inkforge<span class="literal">-local</span></span><br><span class="line">.\run.bat</span><br></pre></td></tr></table></figure>
+
+<p>启动后访问 <code>http://127.0.0.1:7860</code>。</p>
+<h2 id="接下来还会继续做什么"><a href="#接下来还会继续做什么" class="headerlink" title="接下来还会继续做什么"></a>接下来还会继续做什么</h2><p>InkForge 当前已经具备从灵感到全文、从候选稿到审校精修、从章节证据到长期记忆的完整闭环。后续改进仍会围绕三个方向展开：更准确的上下文选择、更透明的自动创作过程，以及更低门槛的本地部署体验。</p>
+<p>我始终认为，AI 写作工具真正值得投入的部分，不是让模型替作者制造更多文字，而是帮助作者管理一部作品长期累积的复杂性：人物为什么做出这个选择，某条事实从哪里来，谁在什么时候知道了什么，以及一次修改会影响到哪里。</p>
+<p>如果你也在尝试用 AI 完成长篇中文小说，欢迎体验、提交问题或参与开发。</p>
+<ul>
+<li>GitHub：<a target="_blank" rel="noopener noreferrer" href="https://github.com/star031104/inkforge-local">https://github.com/star031104/inkforge-local</a></li>
+<li>最新版本：<a target="_blank" rel="noopener noreferrer" href="https://github.com/star031104/inkforge-local/releases/latest">https://github.com/star031104/inkforge-local/releases/latest</a></li>
+<li>项目文档：<a target="_blank" rel="noopener noreferrer" href="https://github.com/star031104/inkforge-local#readme">https://github.com/star031104/inkforge-local#readme</a></li>
+</ul>
+<p><strong>让模型记住故事，让作者掌握方向。</strong></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://star031104-github-io.pages.dev">浅梦</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://star031104-github-io.pages.dev/2026/08/12/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E7%A0%9A%E7%81%ABInkForge-Local/">https://star031104-github-io.pages.dev/2026/08/12/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E7%A0%9A%E7%81%ABInkForge-Local/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://star031104-github-io.pages.dev" target="_blank" rel="noopener noreferrer">浅梦的博客</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/generated-covers/inkforge-local-image25.webp" data-sites="wechat,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/essays/odyssey-return-to-self/" title="《奥德赛》：真正漫长的从来不是回家的路，而是一个人重新成为自己的路"><img class="cover" src="/img/generated-covers/odyssey-image25.webp" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post" loading='lazy' decoding="async"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">《奥德赛》：真正漫长的从来不是回家的路，而是一个人重新成为自己的路</div></div><div class="info-2"><div class="info-item-1"> ——写在克里斯托弗·诺兰《奥德赛》之后 本文含大量剧透。  看完《奥德赛》以后，我脑子里一直停留着一个很简单的问题： 如果一个人终于回到了家，可那个离开家的人早已死在二十年前，那么，回来的究竟是谁？ 从故事梗概来看，《奥德赛》甚至古老得有些简单。 一个国王参加战争，十年后战争结束；他想回家，却在海上继续漂泊十年。途中遭遇风暴、怪物、神祇、诱惑、死亡，...</div></div></div></a><a class="pagination-related" href="/2026/08/10/%E9%9A%8F%E7%AC%94-%E5%B0%91%E5%B9%B4%E5%BF%83%E6%B0%94%E6%98%AF%E4%B8%8D%E5%8F%AF%E5%86%8D%E7%94%9F%E4%B9%8B%E7%89%A9%EF%BC%8C%E8%80%8C%E5%B1%B1%E6%B2%B3%E6%B0%B8%E6%81%92/" title="少年心气是不可再生之物，而山河永恒"><img class="cover" src="/img/generated-covers/youth-and-mountains-image25.webp" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post" loading='lazy' decoding="async"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">少年心气是不可再生之物，而山河永恒</div></div><div class="info-2"><div class="info-item-1"> ——读子非秋月《少年心气定山河》 少年心气不可复得，所以珍贵。山河永恒，所以仍要赶路。   山河是什么？ 对于嬴政，是函谷关外尚未归一的六国； 对于刘邦，是从沛县到长安之间那条没有人知道终点的路； 对于刘彻，是帝国边疆之外仍然吹来的风； 对于李世民，是玄武门之后再也无法回头的人生； 对于武则天，是一个时代加在女子身上的重重边界； 对于李煜，是失去之后...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/19/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-AI%E8%AF%AD%E9%9F%B3%E5%8A%A9%E6%89%8B/" title="浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现"><img class="cover" src="/img/generated-covers/ai-voice-assistant-image25.webp" alt="cover" loading='lazy' decoding="async"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-19</div><div class="info-item-2">浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现</div></div><div class="info-2"><div class="info-item-1"> **阅读提示：**本文按“定位 → 架构 → 核心链路 → 安全与部署 → 改进路线”展开。想快速了解项目，可以先读第 1、4、12、13 节；准备本地运行时，再重点查看第 10、11 节。  1. 项目概述AI_voice_assistant 是一个面向 Windows 本地环境的个人 AI 助手 Runtime。它并不是一个简单的“语音聊天脚本”...</div></div></div></a><a class="pagination-related" href="/2026/05/07/%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3-Qwen%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%E8%AE%B0%E5%BD%95/" title="Qwen 本地部署记录"><img class="cover" src="/img/generated-covers/qwen-local-image25.webp" alt="cover" loading='lazy' decoding="async"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-07</div><div class="info-item-2">Qwen 本地部署记录</div></div><div class="info-2"><div class="info-item-1">相比在线 API，本地模型最大的吸引力不是“免费”，而是数据留在本机、参数可控、服务接口稳定，并且能够直接接入自己的 Agent 与自动化系统。 这次使用 llama.cpp + Qwen GGUF + RTX 4060 Laptop 搭建本地推理服务。下面保留我的设备与参数记录，同时把显存、上下文和网络暴露这些容易忽略的取舍说清楚。 一、设备与目标 ...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.webp" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="浅梦的头像" loading="eager" decoding="async" width="320" height="320"></div><div class="author-info-name">浅梦</div><div class="author-info-description">浅梦的个人技术博客，记录本地大模型、AI Agent、RAG、机器学习、Windows 与 WSL2 工程实践，以及项目开发与生活思考。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">32</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/star031104" target="_blank" title="Github" rel="noopener noreferrer" aria-label="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="https://space.bilibili.com/435320784" target="_blank" title="Bilibili" rel="noopener noreferrer" aria-label="Bilibili"><i class="fas fa-tv" style="color: #fb7299;"></i></a><a class="social-icon" href="/atom.xml" target="_blank" title="RSS" rel="noopener noreferrer" aria-label="RSS"><i class="fas fa-rss" style="color: #f59e0b;"></i></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%99%AE%E9%80%9A%E7%9A%84-AI-%E5%AF%B9%E8%AF%9D%E9%9A%BE%E4%BB%A5%E5%AE%8C%E6%88%90%E9%95%BF%E7%AF%87%E5%B0%8F%E8%AF%B4"><span class="toc-number">1.</span> <span class="toc-text">为什么普通的 AI 对话难以完成长篇小说</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E7%81%B5%E6%84%9F%E5%BC%80%E5%A7%8B%EF%BC%8C%E7%94%B1-AI-%E5%8D%8F%E5%8A%A9%E5%AE%8C%E6%88%90%E6%95%B4%E6%9C%AC%E4%B9%A6%E7%9A%84%E7%94%9F%E4%BA%A7%E6%B5%81%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">从灵感开始，由 AI 协助完成整本书的生产流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%81%B5%E6%84%9F%E5%AD%B5%E5%8C%96"><span class="toc-number">2.1.</span> <span class="toc-text">1. 灵感孵化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%85%A8%E4%B9%A6%E4%B8%8E%E5%88%86%E5%8D%B7%E8%A7%84%E5%88%92"><span class="toc-number">2.2.</span> <span class="toc-text">2. 全书与分卷规划</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%89%B9%E9%87%8F%E5%BB%BA%E7%AB%A0%E4%B8%8E%E9%80%90%E7%AB%A0%E5%88%9B%E4%BD%9C"><span class="toc-number">2.3.</span> <span class="toc-text">3. 批量建章与逐章创作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%AE%A1%E6%A0%A1%E3%80%81%E7%B2%BE%E4%BF%AE%E4%B8%8E%E9%95%BF%E6%9C%9F%E8%AE%B0%E5%BF%86"><span class="toc-number">2.4.</span> <span class="toc-text">4. 审校、精修与长期记忆</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A9%E9%95%BF%E7%AF%87%E4%B8%8D%E8%B7%91%E5%81%8F%EF%BC%9A%E4%BA%8B%E5%AE%9E%E3%80%81%E8%AF%81%E6%8D%AE%E4%B8%8E%E6%97%B6%E9%97%B4%E8%BE%B9%E7%95%8C"><span class="toc-number">3.</span> <span class="toc-text">让长篇不跑偏：事实、证据与时间边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%8C%E4%BA%BA%E5%88%9B%E4%BD%9C%E4%B8%AD%E7%9A%84-Canon-Lock"><span class="toc-number">4.</span> <span class="toc-text">同人创作中的 Canon Lock</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E6%A8%A1%E5%9E%8B%E6%88%96%E4%B8%A4%E4%B8%AA%E6%A8%A1%E5%9E%8B%EF%BC%8C%E7%94%B1%E7%94%A8%E6%88%B7%E5%86%B3%E5%AE%9A"><span class="toc-number">5.</span> <span class="toc-text">一个模型或两个模型，由用户决定</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#v0-33-1%EF%BC%9A%E4%BB%8E%E5%8A%9F%E8%83%BD%E5%8E%9F%E5%9E%8B%E5%88%B0%E5%B7%A5%E7%A8%8B%E5%8C%96%E9%A1%B9%E7%9B%AE"><span class="toc-number">6.</span> <span class="toc-text">v0.33.1：从功能原型到工程化项目</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9C%9F%E6%AD%A3%E9%9D%A2%E5%90%91%E6%99%AE%E9%80%9A%E7%94%A8%E6%88%B7%E7%9A%84-Windows-%E9%83%A8%E7%BD%B2"><span class="toc-number">7.</span> <span class="toc-text">真正面向普通用户的 Windows 部署</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E4%B8%8E%E8%B4%A8%E9%87%8F%E4%BF%9D%E9%9A%9C"><span class="toc-number">8.</span> <span class="toc-text">测试与质量保障</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%BC%80%E5%A7%8B%E4%BD%BF%E7%94%A8"><span class="toc-number">9.</span> <span class="toc-text">如何开始使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A5%E4%B8%8B%E6%9D%A5%E8%BF%98%E4%BC%9A%E7%BB%A7%E7%BB%AD%E5%81%9A%E4%BB%80%E4%B9%88"><span class="toc-number">10.</span> <span class="toc-text">接下来还会继续做什么</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/09/04/yingzhang-ai-ppt/" title="映章 YingZhang 开发报告：从材料到可编辑演示的 AI PPT 生产系统"><img src="/img/generated-covers/yingzhang-ai-ppt-image25.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="映章 YingZhang 开发报告：从材料到可编辑演示的 AI PPT 生产系统" loading="lazy" decoding="async"></a><div class="content"><a class="title" href="/2026/09/04/yingzhang-ai-ppt/" title="映章 YingZhang 开发报告：从材料到可编辑演示的 AI PPT 生产系统">映章 YingZhang 开发报告：从材料到可编辑演示的 AI PPT 生产系统</a><time datetime="2026-09-04T08:00:00.000Z" title="发表于 2026-09-04 16:00:00">2026-09-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/essays/odyssey-return-to-self/" title="《奥德赛》：真正漫长的从来不是回家的路，而是一个人重新成为自己的路"><img src="/img/generated-covers/odyssey-image25.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《奥德赛》：真正漫长的从来不是回家的路，而是一个人重新成为自己的路" loading="lazy" decoding="async"></a><div class="content"><a class="title" href="/essays/odyssey-return-to-self/" title="《奥德赛》：真正漫长的从来不是回家的路，而是一个人重新成为自己的路">《奥德赛》：真正漫长的从来不是回家的路，而是一个人重新成为自己的路</a><time datetime="2026-08-20T18:36:09.000Z" title="发表于 2026-08-21 02:36:09">2026-08-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/08/12/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E7%A0%9A%E7%81%ABInkForge-Local/" title="从一句灵感到一部长篇：我如何把 InkForge Local 重构成可靠的本地 AI 小说工作台"><img src="/img/generated-covers/inkforge-local-image25.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="从一句灵感到一部长篇：我如何把 InkForge Local 重构成可靠的本地 AI 小说工作台" loading="lazy" decoding="async"></a><div class="content"><a class="title" href="/2026/08/12/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-%E7%A0%9A%E7%81%ABInkForge-Local/" title="从一句灵感到一部长篇：我如何把 InkForge Local 重构成可靠的本地 AI 小说工作台">从一句灵感到一部长篇：我如何把 InkForge Local 重构成可靠的本地 AI 小说工作台</a><time datetime="2026-08-12T08:00:00.000Z" title="发表于 2026-08-12 16:00:00">2026-08-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/08/10/%E9%9A%8F%E7%AC%94-%E5%B0%91%E5%B9%B4%E5%BF%83%E6%B0%94%E6%98%AF%E4%B8%8D%E5%8F%AF%E5%86%8D%E7%94%9F%E4%B9%8B%E7%89%A9%EF%BC%8C%E8%80%8C%E5%B1%B1%E6%B2%B3%E6%B0%B8%E6%81%92/" title="少年心气是不可再生之物，而山河永恒"><img src="/img/generated-covers/youth-and-mountains-image25.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="少年心气是不可再生之物，而山河永恒" loading="lazy" decoding="async"></a><div class="content"><a class="title" href="/2026/08/10/%E9%9A%8F%E7%AC%94-%E5%B0%91%E5%B9%B4%E5%BF%83%E6%B0%94%E6%98%AF%E4%B8%8D%E5%8F%AF%E5%86%8D%E7%94%9F%E4%B9%8B%E7%89%A9%EF%BC%8C%E8%80%8C%E5%B1%B1%E6%B2%B3%E6%B0%B8%E6%81%92/" title="少年心气是不可再生之物，而山河永恒">少年心气是不可再生之物，而山河永恒</a><time datetime="2026-08-10T12:54:48.000Z" title="发表于 2026-08-10 20:54:48">2026-08-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/19/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-AI%E8%AF%AD%E9%9F%B3%E5%8A%A9%E6%89%8B/" title="浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现"><img src="/img/generated-covers/ai-voice-assistant-image25.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现" loading="lazy" decoding="async"></a><div class="content"><a class="title" href="/2026/05/19/%E5%BC%80%E5%8F%91%E6%8A%A5%E5%91%8A-AI%E8%AF%AD%E9%9F%B3%E5%8A%A9%E6%89%8B/" title="浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现">浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现</a><time datetime="2026-05-18T16:00:00.000Z" title="发表于 2026-05-19 00:00:00">2026-05-19</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 浅梦</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener noreferrer" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener noreferrer" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></span></div><div class="footer_custom_text">愿每一次记录，都成为通往远方的微光。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script defer src="/js/site-enhancements.js?v=20260811"></script><script defer src="/js/ai-assistant.js?v=20260914-2"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
