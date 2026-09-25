@@ -1,17 +1,21 @@
 ---
 title: 浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现
 date: 2026-05-19
+updated: 2026-09-14 12:00:00
 categories:
-    - 开发报告
+  - 开发报告
 tags:
   - AI Agent
   - 本地大模型
   - 语音交互
   - RAG
-cover: /img/开发报告/2.webp
-top_img: /img/开发报告/2.webp
+cover: /img/generated-covers/ai-voice-assistant-image25.webp
+top_img: /img/generated-covers/ai-voice-assistant-image25.webp
 description: 该项目以本地大语言模型为核心，结合 FunASR 语音识别、GPT-SoVITS 语音合成、Search/RAG、Tool Calling、长期记忆、屏幕观察和 Skill Package 工作流，实现了一个可在 Windows 本地运行的个人 AI Agent Runtime。
 ---
+
+
+> **阅读提示：**本文按“定位 → 架构 → 核心链路 → 安全与部署 → 改进路线”展开。想快速了解项目，可以先读第 1、4、12、13 节；准备本地运行时，再重点查看第 10、11 节。
 
 
 ## 1. 项目概述
@@ -934,3 +938,11 @@ tests/
 - Skill Package 可视化管理；
 - RAG 搜索过程可视化；
 - 工具确认弹窗优化。
+
+## 14. 总结
+
+浅梦 AI 助手真正有价值的地方，不是把语音识别、大模型和工具调用简单拼在一起，而是建立了一条可以持续扩展的 Runtime 主链：输入被统一成会话事件，SessionRunner 负责单轮编排，Intent Router 区分快速请求与复杂任务，Agent Loop 决定何时调用工具，Memory、RAG 与 Skill Package 则分别承担长期状态、外部知识和能力扩展。
+
+目前系统已经具备本地桌面 Agent 的完整骨架，但“能力多”也意味着启动成本、安全边界和可观测性会成为下一阶段的重点。比继续增加入口更重要的，是统一任务状态、收紧高风险工具权限、让模型服务状态可见，并把失败恢复做成用户能够理解的产品体验。
+
+如果这些基础继续完善，它就不再只是一个能听、能说、能搜索的助手，而会成为一个真正可以在本地长期运行、由用户掌握数据和控制权的个人 Agent Runtime。

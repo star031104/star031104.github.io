@@ -1,0 +1,62 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "blog-ai-assistant",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "ai": {
+    "binding": "AI"
+  },
+  "ratelimits": [
+    {
+      "name": "AI_RATE_LIMITER",
+      "namespace_id": "2026091401",
+      "simple": {
+        "limit": 12,
+        "period": 60
+      }
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "ALLOWED_ORIGINS": "https://star031104-github-io.pages.dev",
+    "KNOWLEDGE_URL": "https://star031104-github-io.pages.dev/data/blog-knowledge.json",
+    "AI_API_URL": "https://api.siliconflow.cn/v1/chat/completions",
+    "AI_MODEL": "Qwen/Qwen3-8B",
+    "MAX_OUTPUT_TOKENS": "900",
+    "RETRIEVAL_LIMIT": "6",
+    "MIN_RETRIEVAL_SCORE": "0.8"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1
+  },
+  "env": {
+    "staging": {
+      "name": "blog-ai-assistant-staging",
+      "ai": {
+        "binding": "AI"
+      },
+      "ratelimits": [
+        {
+          "name": "AI_RATE_LIMITER",
+          "namespace_id": "2026091402",
+          "simple": {
+            "limit": 30,
+            "period": 60
+          }
+        }
+      ],
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "ALLOWED_ORIGINS": "http://localhost:4000,http://127.0.0.1:4000",
+        "KNOWLEDGE_URL": "https://star031104-github-io.pages.dev/data/blog-knowledge.json",
+        "AI_API_URL": "https://api.siliconflow.cn/v1/chat/completions",
+        "AI_MODEL": "Qwen/Qwen3-8B",
+        "MAX_OUTPUT_TOKENS": "900",
+        "RETRIEVAL_LIMIT": "6",
+        "MIN_RETRIEVAL_SCORE": "0.8"
+      }
+    }
+  }
+}

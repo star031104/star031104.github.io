@@ -1,6 +1,7 @@
 ---
 title: WSL2 CUDA 配置记录
 date: 2026-05-07
+updated: 2026-09-14 12:00:00
 categories:
   - 技术文档
 tags:
@@ -8,195 +9,154 @@ tags:
   - CUDA
   - GPU
   - Windows
-cover: /img/covers/wsl2-cuda.webp
-top_img: /img/covers/wsl2-cuda.webp
-description: Windows + WSL2 下配置 CUDA 与 GPU 加速环境的完整记录。
+cover: /img/generated-covers/wsl2-cuda-image25.webp
+top_img: /img/generated-covers/wsl2-cuda-image25.webp
+description: Windows 11 与 WSL2 下配置 NVIDIA CUDA 开发环境：安装顺序、GPU 验证、PyTorch 测试和常见故障排查。
 ---
 
+很多本地 AI 工具天然以 Linux 为第一运行环境，但我的日常设备仍然是 Windows。WSL2 刚好提供了一条折中路径：保留 Windows 桌面体验，同时获得 Linux、Docker、Python 和 CUDA 工具链。
 
-最近很多本地 AI 工具都开始依赖：
+这篇文章记录一套更稳妥的安装顺序，并特别说明最容易踩坑的一点：**WSL2 使用 Windows 宿主机提供的 NVIDIA 驱动映射，不应在 WSL 内再次安装 Linux 显卡驱动。**
 
-```text
-Linux + CUDA
-```
-
-环境。
-
-所以后面开始正式折腾：
+## 一、最终环境
 
 ```text
-Windows + WSL2 + CUDA
+Windows 11
+└─ WSL2
+   └─ Ubuntu 22.04
+      ├─ NVIDIA CUDA
+      ├─ Python / Conda
+      ├─ PyTorch
+      └─ llama.cpp / AI Agent
 ```
 
-这一套环境。
+适合这套方案的场景包括本地模型推理、CUDA 开发、Docker 服务和需要 Linux 依赖的 Agent 项目。如果只是运行一个已有的 Windows 程序，则未必需要额外引入 WSL2。
 
-## 一、为什么使用 WSL2
+## 二、安装并更新 WSL2
 
-相比虚拟机：
-
-WSL2 最大的优点是：
-
-- 更轻量
-- GPU 支持更好
-- Linux 兼容性强
-- 开发方便
-
-现在很多：
-
-- OpenClaw
-- Docker
-- AI Agent
-- Python 环境
-
-都更适合 Linux。
-
-## 二、安装 WSL2
-
-管理员 PowerShell：
+在管理员 PowerShell 中执行：
 
 ```powershell
 wsl --install
+wsl --update
 ```
 
-安装完成后：
+重启后检查发行版和虚拟化版本：
 
 ```powershell
-wsl -l -v
+wsl --list --verbose
 ```
 
-查看版本。
+目标是让 Ubuntu 的 `VERSION` 显示为 `2`。如果仍是 WSL1，可以执行：
 
-## 三、安装 Ubuntu
-
-安装：
-
-```text
-Ubuntu 22.04
+```powershell
+wsl --set-version Ubuntu-22.04 2
 ```
 
-作为主要开发环境。
+## 三、先在 Windows 安装 NVIDIA 驱动
 
-## 四、检查 GPU
-
-进入 WSL：
+CUDA on WSL 的驱动来自 Windows。先在宿主机安装与显卡兼容的 NVIDIA 驱动，再进入 Ubuntu 验证：
 
 ```bash
 nvidia-smi
 ```
 
-如果正常：
+只要命令能看到 GPU、驱动版本和显存信息，说明 WSL 已经获得计算设备访问权限。
 
-会显示 GPU 信息。
+> 不要在 WSL 中安装 `cuda-drivers` 或 Linux NVIDIA 显示驱动。这样可能覆盖 WSL 的驱动映射，反而让 CUDA 失效。
 
-## 五、安装 CUDA Toolkit
+## 四、按需要安装 CUDA Toolkit
 
-下载：
+如果只运行带有 CUDA 运行时的预编译软件，通常不必安装完整 Toolkit；只有需要 `nvcc`、编译 CUDA 项目或构建 CUDA 版 llama.cpp 时才需要安装。
 
-```text
-CUDA Toolkit
-```
-
-然后安装：
+应按照 NVIDIA 的 WSL-Ubuntu 安装页面配置仓库，并选择仅包含工具链的包，例如：
 
 ```bash
-sudo apt install nvidia-cuda-toolkit
+sudo apt update
+sudo apt install cuda-toolkit-12-x
 ```
 
-## 六、Python 环境
+其中 `12-x` 要替换成当前仓库提供且与你的项目兼容的版本。不要在 WSL2 中选择会连带安装 Linux 驱动的 `cuda`、`cuda-12-x` 或 `cuda-drivers` 元包。
 
-后面主要使用：
+安装后验证：
 
-```text
-conda
+```bash
+nvcc --version
+nvidia-smi
 ```
 
-管理环境。
+`nvidia-smi` 展示的是驱动支持能力，`nvcc --version` 展示的是本地编译工具链版本，两者数字不完全一致并不一定代表故障。
 
-创建：
+## 五、建立独立 Python 环境
+
+我习惯用 Conda 隔离本地 AI 项目：
 
 ```bash
 conda create -n llm python=3.11
+conda activate llm
 ```
 
-## 七、PyTorch GPU 测试
-
-测试：
+安装 PyTorch 时，应从官方安装选择器复制与当前 CUDA 运行时匹配的命令。完成后执行最小验证：
 
 ```python
 import torch
 
-print(torch.cuda.is_available())
+print("CUDA available:", torch.cuda.is_available())
+print("Device:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU")
+print("PyTorch CUDA:", torch.version.cuda)
 ```
 
-输出：
+只有 `torch.cuda.is_available()` 返回 `True`，并且设备名称正确，才算 Python 侧的链路真正打通。
 
-```text
-True
+## 六、进一步验证计算链路
+
+仅能运行 `nvidia-smi` 还不够，最好再做一次实际张量计算：
+
+```python
+import torch
+
+x = torch.randn(4096, 4096, device="cuda")
+y = x @ x
+print(y.shape, y.device)
 ```
 
-说明 CUDA 正常。
+同时可以在另一个终端运行：
 
-## 八、遇到的问题
-
-### 1. localhost 代理问题
-
-WSL NAT 模式下：
-
-```text
-localhost 代理不互通
+```bash
+watch -n 1 nvidia-smi
 ```
 
-导致：
+如果计算时能看到显存与 GPU 利用率变化，说明从 Windows 驱动、WSL2 到 PyTorch 的完整路径已经工作。
 
-很多工具无法直接走代理。
+## 七、常见问题
 
-后面需要：
+### 1. WSL 内看不到 GPU
 
-- 手动设置 IP
-- 或桥接模式
+按顺序检查：Windows NVIDIA 驱动是否正常、WSL 是否已更新、发行版是否运行在 WSL2，以及系统重启后 `nvidia-smi` 是否可用。不要先通过安装 Linux 驱动“碰运气”。
 
 ### 2. CUDA 版本不匹配
 
-有时候：
+区分三个概念：Windows 驱动支持的 CUDA 上限、WSL 中的 Toolkit 版本、PyTorch 自带或需要的 CUDA 运行时。排障时分别记录它们，而不是只看一个“CUDA 版本”。
 
-- 驱动版本
-- CUDA Toolkit
-- PyTorch CUDA
+### 3. localhost 与代理不通
 
-版本不一致。
+WSL 网络模式和代理软件配置会影响宿主机与 Linux 子系统的互访。先用 `curl` 测试目标地址，再根据实际网络模式设置宿主机 IP、`HTTP_PROXY`、`HTTPS_PROXY` 和 `NO_PROXY`。本地模型服务如果只供本机使用，应优先绑定 `127.0.0.1`，不要无意暴露到局域网。
 
-会导致：
+### 4. 重启后环境变量失效
 
-```text
-CUDA unavailable
-```
+把确实需要的路径写入 `~/.bashrc` 或对应 shell 配置，并避免同时保留多套互相冲突的 CUDA 路径。修改后重新打开终端，再检查 `which nvcc` 和 `nvcc --version`。
 
-## 九、实际效果
+## 八、我的使用结果
 
-配置完成后：
+配置完成后，这套环境可以稳定承担 llama.cpp、PyTorch、Docker 与本地 Agent 项目的开发和推理。它的价值不只是“让 GPU 能用”，而是让 Windows 上的 AI 开发获得一套更接近 Linux 生产环境的工具链。
 
-目前已经能够正常：
+## 九、检查清单
 
-- 跑 llama.cpp
-- 跑 PyTorch
-- 跑 OpenClaw
-- 使用 GPU 推理
+- `wsl --list --verbose` 显示目标发行版为 WSL2；
+- Windows 和 WSL 中的 `nvidia-smi` 均能识别显卡；
+- 需要编译时，`nvcc --version` 正常；
+- Python 环境彼此隔离；
+- PyTorch 能创建 CUDA 张量并完成实际计算；
+- 本地服务没有无意绑定到公网或局域网地址。
 
-整体体验比 Windows 原生稳定很多。
-
-## 十、总结
-
-WSL2 现在已经基本成为：
-
-Windows 本地 AI 开发的核心环境之一。
-
-尤其：
-
-- CUDA
-- Docker
-- Python
-- Agent
-
-这一整套生态。
-
-在 Linux 下体验明显更完整。
+相关资料：[Microsoft WSL 安装说明](https://learn.microsoft.com/windows/wsl/install) · [NVIDIA CUDA on WSL 指南](https://docs.nvidia.com/cuda/wsl-user-guide/)

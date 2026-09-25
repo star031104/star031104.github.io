@@ -25,4 +25,12 @@ description: 本地大模型、Windows、WSL2、CUDA 与 AI 工具的部署教�
   </a>
   </div>
 
+  <div class="docs-section">
+  <h2>📊 AI 演示</h2>
+
+  <a href="/2026/05/09/技术文档-PPT-Master/" class="docs-item">
+      PPT-Master：从 SVG 到可编辑 PowerPoint
+  </a>
+  </div>
+
 </div>

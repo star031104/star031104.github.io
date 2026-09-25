@@ -5,7 +5,12 @@ db.json
 node_modules/
 public/
 dist/
+output/
 .deploy*/
 _multiconfig.yml
 .cloudflare-token
 .cloudflare-account-id
+.dev.vars
+worker/.dev.vars
+worker/.wrangler/
+.playwright-cli/

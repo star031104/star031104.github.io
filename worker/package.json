@@ -1,0 +1,21 @@
+{
+  "name": "blog-ai-assistant-worker",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --env staging",
+    "deploy": "wrangler deploy --env=\"\" --minify",
+    "deploy:staging": "wrangler deploy --env staging --minify",
+    "deploy:dry": "wrangler deploy --env=\"\" --dry-run --outdir .wrangler/dry-run",
+    "test": "vitest run",
+    "typecheck": "wrangler types --check && tsc --noEmit",
+    "types": "wrangler types"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.131.1"
+  }
+}

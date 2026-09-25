@@ -4,6 +4,7 @@ const crypto = require('node:crypto')
 
 const MAX_CHUNK_LENGTH = 1200
 const CHUNK_OVERLAP = 120
+const MIN_CHUNK_LENGTH = 160
 
 function stripFrontMatter(markdown) {
   return markdown.replace(/^---\s*[\r\n]+[\s\S]*?[\r\n]+---\s*[\r\n]*/, '')
@@ -95,9 +96,45 @@ function normalizeDate(value) {
   return Number.isNaN(date.getTime()) ? '' : date.toISOString()
 }
 
-hexo.extend.generator.register('blog-knowledge', locals => {
+function characterLength(text) {
+  return Array.from(text).length
+}
+
+function joinChunks(left, right) {
+  const heading = left.heading === right.heading
+    ? left.heading
+    : `${left.heading} / ${right.heading}`
+  const separator = left.heading === right.heading ? '\n\n' : `\n\n${right.heading}\n`
+  return { heading, content: `${left.content}${separator}${right.content}`.trim() }
+}
+
+function mergeSmallChunks(chunks, minLength = MIN_CHUNK_LENGTH, maxLength = MAX_CHUNK_LENGTH) {
+  const merged = []
+  for (const chunk of chunks) {
+    const previous = merged[merged.length - 1]
+    if (characterLength(chunk.content) < minLength && previous) {
+      const combined = joinChunks(previous, chunk)
+      if (characterLength(combined.content) <= maxLength) {
+        merged[merged.length - 1] = combined
+        continue
+      }
+    }
+
+    if (previous && characterLength(previous.content) < minLength) {
+      const combined = joinChunks(previous, chunk)
+      if (characterLength(combined.content) <= maxLength) {
+        merged[merged.length - 1] = combined
+        continue
+      }
+    }
+    merged.push(chunk)
+  }
+  return merged
+}
+
+function createKnowledge(locals, rootValue = '/') {
   const knowledge = []
-  const root = (hexo.config.root || '/').replace(/\/$/, '')
+  const root = rootValue.replace(/\/$/, '')
   const posts = locals.posts.sort('-date').toArray()
 
   for (const post of posts) {
@@ -107,18 +144,22 @@ hexo.extend.generator.register('blog-knowledge', locals => {
     const categories = post.categories ? post.categories.map(item => item.name) : []
     const tags = post.tags ? post.tags.map(item => item.name) : []
 
-    for (const section of getSections(markdown, title)) {
-      splitSection(section.content).forEach((content, index) => {
+    const postChunks = getSections(markdown, title).flatMap(section =>
+      splitSection(section.content).map(content => ({ heading: section.heading, content }))
+    )
+
+    mergeSmallChunks(postChunks).forEach((chunk, index) => {
+        const { heading, content } = chunk
         const id = crypto
           .createHash('sha1')
-          .update(`${post.source}|${section.heading}|${index}|${content}`)
+          .update(`${post.source}|${heading}|${index}|${content}`)
           .digest('hex')
           .slice(0, 16)
 
         knowledge.push({
           id,
           title,
-          heading: section.heading,
+          heading,
           categories,
           category: categories[0] || '',
           tags,
@@ -129,11 +170,26 @@ hexo.extend.generator.register('blog-knowledge', locals => {
           content
         })
       })
-    }
   }
 
+  return knowledge
+}
+
+if (typeof hexo !== 'undefined') {
+  hexo.extend.generator.register('blog-knowledge', locals => {
+    const knowledge = createKnowledge(locals, hexo.config.root || '/')
   return {
     path: 'data/blog-knowledge.json',
     data: JSON.stringify(knowledge, null, 2)
   }
-})
+  })
+}
+
+module.exports = {
+  cleanMarkdown,
+  createKnowledge,
+  getSections,
+  mergeSmallChunks,
+  splitLongText,
+  splitSection
+}
