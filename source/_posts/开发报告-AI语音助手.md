@@ -1,6 +1,6 @@
 ---
 title: 浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现
-date: 2026-05-19
+date: 2026-05-19 12:00:00
 updated: 2026-09-14 12:00:00
 categories:
   - 开发报告

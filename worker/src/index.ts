@@ -1,11 +1,12 @@
 import { AppError } from './errors'
 import { buildChatMessages, buildSummaryMessages } from './prompts'
+import { buildCatalogAnswer, detectCatalogIntent } from './catalog'
 import { generateText, generateTextStream, providerName, staticTextStream } from './provider'
 import { buildSources, rankKnowledge } from './retrieval'
 import type { AnswerSource, AssistantRequest, KnowledgeChunk, PromptMessage, StreamMetadata } from './types'
 import { readLimitedJson, validateAssistantRequest } from './validation'
 
-const VERSION = '2.0.0'
+const VERSION = '2.1.2'
 const MAX_KNOWLEDGE_BYTES = 2 * 1024 * 1024
 const NO_EVIDENCE_ANSWER = '博客现有内容不足以确认这个问题。你可以换一种更具体的问法，或先查看博客的文章分类。'
 
@@ -151,7 +152,7 @@ async function preparePrompt(
   requestBody: AssistantRequest,
   env: Env,
   ctx: ExecutionContext
-): Promise<{ messages: PromptMessage[]; sources: AnswerSource[]; noEvidence: boolean }> {
+): Promise<{ messages: PromptMessage[]; sources: AnswerSource[]; noEvidence: boolean; staticAnswer?: string }> {
   if (requestBody.type === 'summary') {
     return {
       messages: buildSummaryMessages(requestBody),
@@ -161,6 +162,16 @@ async function preparePrompt(
   }
 
   const knowledge = await loadKnowledge(env, ctx)
+  const catalogIntent = detectCatalogIntent(requestBody.message)
+  if (catalogIntent) {
+    const catalog = buildCatalogAnswer(knowledge, catalogIntent)
+    return {
+      messages: [],
+      sources: catalog.sources,
+      noEvidence: false,
+      staticAnswer: catalog.answer
+    }
+  }
   const previousUserTurn = [...requestBody.history].reverse().find(turn => turn.role === 'user')?.content || ''
   const query = `${previousUserTurn} ${requestBody.message}`.trim()
   const limit = numericSetting(env.RETRIEVAL_LIMIT, 6, 1, 10)
@@ -195,6 +206,12 @@ async function handleAssistantRequest(request: Request, env: Env, ctx: Execution
       sourceCount: prepared.sources.length,
       outputCharacters: result.outputCharacters
     }))
+  }
+
+  if (prepared.staticAnswer) {
+    logResult({ ok: true, outputCharacters: prepared.staticAnswer.length })
+    if (body.stream) return streamResponse(request, env, staticTextStream(prepared.staticAnswer, metadata), requestId)
+    return jsonResponse(request, env, { answer: prepared.staticAnswer, sources: prepared.sources, requestId }, 200, requestId)
   }
 
   if (body.stream) {

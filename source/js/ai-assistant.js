@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="ai-brand-mark" aria-hidden="true">✦</span>
           <div>
             <div id="ai-panel-title" class="ai-title">浅梦 AI 助手</div>
-            <div id="ai-panel-status" class="ai-status"><span class="ai-status-dot" aria-hidden="true"></span><span class="ai-status-text">博客知识库已连接</span></div>
+            <div id="ai-panel-status" class="ai-status"><span class="ai-status-dot" aria-hidden="true"></span><span class="ai-status-text">可基于博客内容回答</span></div>
           </div>
         </div>
         <div class="ai-header-actions">
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="ai-send-icon" aria-hidden="true">↑</span>
           </button>
         </div>
-        <p class="ai-privacy-note">AI 可能会出错，请以引用的原文为准</p>
+        <p class="ai-privacy-note">问题会发送至模型服务处理；请勿输入密码、密钥等敏感信息。</p>
       </form>
     </section>
   `
@@ -57,6 +57,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btn = wrapper.querySelector('#ai-assistant-btn')
   const panel = wrapper.querySelector('#ai-assistant-panel')
+  const backdrop = document.createElement('button')
+  backdrop.type = 'button'
+  backdrop.className = 'ai-panel-backdrop'
+  backdrop.tabIndex = -1
+  backdrop.setAttribute('aria-label', '关闭浅梦 AI 助手')
+  wrapper.insertBefore(backdrop, panel)
   const closeBtn = wrapper.querySelector('#ai-panel-close')
   const clearBtn = wrapper.querySelector('#ai-clear-btn')
   const input = wrapper.querySelector('#ai-panel-input')
@@ -79,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateArticleAction()
 
   btn.addEventListener('click', () => setPanelOpen(!panel.classList.contains('show')))
+  backdrop.addEventListener('click', () => setPanelOpen(false))
   closeBtn.addEventListener('click', () => setPanelOpen(false))
   clearBtn.addEventListener('click', clearConversation)
   summaryBtn.addEventListener('click', summarizeCurrentArticle)
@@ -100,6 +107,21 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && panel.classList.contains('show')) setPanelOpen(false)
   })
+  panel.addEventListener('keydown', event => {
+    if (event.key !== 'Tab' || !window.matchMedia('(max-width: 600px)').matches) return
+    const focusable = [...panel.querySelectorAll('button:not([disabled]), textarea:not([disabled]), a[href]')]
+      .filter(element => !element.hidden && element.getAttribute('aria-hidden') !== 'true' && element.getClientRects().length)
+    if (!focusable.length) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  })
 
   function getCurrentArticle() {
     return document.querySelector('#article-container.post-content, .article-entry.post-content, .post-content')
@@ -119,6 +141,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function setPanelOpen(open) {
     panel.classList.toggle('show', open)
     panel.setAttribute('aria-hidden', String(!open))
+    panel.setAttribute('aria-modal', String(open && window.matchMedia('(max-width: 600px)').matches))
+    backdrop.classList.toggle('show', open)
+    backdrop.setAttribute('aria-hidden', String(!open))
     btn.setAttribute('aria-expanded', String(open))
     btn.setAttribute('aria-label', open ? '关闭浅梦 AI 助手' : '打开浅梦 AI 助手')
     if (open) {
@@ -417,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
     input.disabled = value
     panel.setAttribute('aria-busy', String(value))
     status.classList.toggle('is-thinking', value)
-    statusText.textContent = value ? '正在检索博客并生成回答' : '博客知识库已连接'
+    statusText.textContent = value ? '正在检索博客并生成回答' : '可基于博客内容回答'
   }
 
   function appendMessage(text, type, options = {}) {
@@ -493,17 +518,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderSources(message, sourceList) {
     if (!Array.isArray(sourceList) || !sourceList.length) return
-    const container = document.createElement('details')
+    const container = document.createElement('div')
     container.className = 'ai-sources'
-    const label = document.createElement('summary')
+    const label = document.createElement('div')
     label.className = 'ai-sources-label'
-    label.textContent = `查看 ${Math.min(sourceList.length, 6)} 个参考来源`
+    label.textContent = '主要参考'
     container.appendChild(label)
 
-    const list = document.createElement('div')
-    list.className = 'ai-source-list'
-
-    sourceList.slice(0, 6).forEach((source, index) => {
+    const primaryList = document.createElement('div')
+    primaryList.className = 'ai-source-list'
+    sourceList.slice(0, 3).forEach((source, index) => {
       const href = safeSourceUrl(source.url)
       if (!href) return
       const link = document.createElement('a')
@@ -511,11 +535,36 @@ document.addEventListener('DOMContentLoaded', () => {
       link.className = 'ai-source-link'
       link.textContent = `[${source.index || index + 1}] ${source.title}${source.heading && source.heading !== source.title ? ` · ${source.heading}` : ''}`
       link.title = '打开参考文章'
-      list.appendChild(link)
+      primaryList.appendChild(link)
     })
-    if (list.childElementCount) {
-      container.appendChild(list)
+    if (primaryList.childElementCount) {
+      container.appendChild(primaryList)
       message.appendChild(container)
+    }
+
+    const remainingSources = sourceList.slice(3, 6)
+    if (remainingSources.length) {
+      const more = document.createElement('details')
+      more.className = 'ai-sources-more'
+      const moreLabel = document.createElement('summary')
+      moreLabel.textContent = `查看其他 ${remainingSources.length} 个来源`
+      more.appendChild(moreLabel)
+      const moreList = document.createElement('div')
+      moreList.className = 'ai-source-list'
+      remainingSources.forEach((source, index) => {
+        const href = safeSourceUrl(source.url)
+        if (!href) return
+        const link = document.createElement('a')
+        link.href = href
+        link.className = 'ai-source-link'
+        link.textContent = `[${source.index || index + 4}] ${source.title}${source.heading && source.heading !== source.title ? ` · ${source.heading}` : ''}`
+        link.title = '打开参考文章'
+        moreList.appendChild(link)
+      })
+      if (moreList.childElementCount) {
+        more.appendChild(moreList)
+        message.appendChild(more)
+      }
     }
   }
 

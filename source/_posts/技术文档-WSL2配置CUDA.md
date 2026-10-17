@@ -1,6 +1,6 @@
 ---
 title: WSL2 CUDA 配置记录
-date: 2026-05-07
+date: 2026-05-07 12:00:00
 updated: 2026-09-14 12:00:00
 categories:
   - 技术文档

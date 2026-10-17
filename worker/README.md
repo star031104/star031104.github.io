@@ -10,17 +10,17 @@
   → 请求校验与会话限流
   → 拉取并缓存 blog-knowledge.json
   → 中文友好的 BM25 混合检索
-  → 智谱官方 GLM-4.7-Flash 生成
+  → 硅基流动 Qwen/Qwen3-8B 生成
   → SSE：meta / token / done
 ```
 
-生产和预发布环境当前直连智谱官方 API：
+生产和预发布环境当前使用硅基流动兼容接口：
 
 - 接口：`https://api.siliconflow.cn/v1/chat/completions`
 - 模型：`Qwen/Qwen3-8B`
-- 密钥：Cloudflare Secret `AI_API_KEY`
+- 密钥：Cloudflare Secret `SILICONFLOW_API_KEY`
 
-`AI_API_URL` 和 `AI_MODEL` 是可公开的非敏感配置；硅基流动密钥只能通过 `SILICONFLOW_API_KEY` Wrangler Secret 或本地 `.dev.vars` 提供，不能提交到仓库。清空 `AI_API_URL` 后，后端仍可回退到代码允许列表中的 Workers AI 模型。
+`AI_API_URL` 和 `AI_MODEL` 是可公开的非敏感配置；硅基流动密钥只能通过 `SILICONFLOW_API_KEY` Wrangler Secret 或本地 `.dev.vars` 提供，不能提交到仓库。清空 `AI_API_URL` 后，后端仍可回退到代码允许列表中的 Workers AI 模型。分类概览和最近更新问题直接读取知识库元数据，避免模型自行猜测目录信息。
 
 ## 本地验证
 
@@ -38,7 +38,7 @@ npm run deploy:ai:dry
 npm run dev:ai
 ```
 
-真实问答会直接调用智谱官方接口。纯单元测试和 dry-run 不会调用模型。
+真实问答会直接调用硅基流动接口（需要本地 `.dev.vars` 中的 `SILICONFLOW_API_KEY`）。纯单元测试和 dry-run 不会调用模型。
 
 ## 接口
 
@@ -84,28 +84,31 @@ GET /health
 }
 ```
 
-## 部署顺序
+## 部署与线上核对
 
-1. 先运行 `npm --workspace worker run deploy:staging` 部署 staging Worker 并做真实问答验证。
-2. 备份当前生产 Worker 的代码与变量。
-3. 部署生产 Worker；检查 `/health`、CORS、问答、总结、引用和 429 响应。
-4. 最后部署博客前端。
-
-生产部署命令：
+完整发布入口会先执行项目质量检查，再 dry-run 并发布 Worker，随后发布 Pages，最后核对首页资源版本、Worker 模型配置与知识库内容：
 
 ```bash
-npm --workspace worker run deploy
+npm run deploy:cloudflare
 ```
 
-首次部署或轮换智谱密钥时，生产与预发布环境要分别设置 Secret：
+也可以单独部署 staging Worker：
+
+```bash
+npm --workspace worker run deploy:staging
+```
+
+如果发布后的线上首页、Worker 健康信息或知识库元数据未通过核对，发布命令会返回失败状态并给出具体原因；不会打印 Cloudflare API Token 或模型密钥。
+
+首次部署或轮换硅基流动密钥时，生产与预发布环境要分别设置 Secret：
 
 ```bash
 cd worker
-npx wrangler secret put AI_API_KEY
-npx wrangler secret put AI_API_KEY --env staging
+npx wrangler secret put SILICONFLOW_API_KEY
+npx wrangler secret put SILICONFLOW_API_KEY --env staging
 ```
 
-密钥来自智谱开放平台的 API Keys 页面。不要把密钥写进 `wrangler.jsonc`、源码或维护文档。
+密钥来自硅基流动控制台的 API 密钥页面。若改用智谱等其他 OpenAI 兼容服务，修改 `AI_API_URL`、`AI_MODEL`，改用 `AI_API_KEY` Secret，并同步更新 `tools/deploy-cloudflare.js` 中对 provider 的线上核对。不要把密钥写进 `wrangler.jsonc`、源码或维护文档。
 
 ## 运行保护
 

@@ -35,6 +35,10 @@ feed:
   limit: 20
   content: true
 
+index_generator:
+  per_page: 6
+  order_by: -date
+
 skip_render:
   - "google*.html"
   - "_headers"

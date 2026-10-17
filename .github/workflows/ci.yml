@@ -2,7 +2,7 @@ name: Quality checks
 
 on:
   push:
-    branches: [main]
+    branches: [source, master]
   pull_request:
   workflow_dispatch:
 
@@ -12,6 +12,9 @@ permissions:
 concurrency:
   group: blog-quality-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  TZ: Asia/Shanghai
 
 jobs:
   build-and-check:

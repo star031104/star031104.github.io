@@ -1,6 +1,6 @@
 ---
 title: 视频收藏
-date: 2026-05-07
+date: 2026-05-07 12:00:00
 top_img: /img/index.webp
 description: 浅梦收藏的视频、学习资料、生活片段和灵感记录。
 ---

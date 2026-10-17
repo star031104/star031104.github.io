@@ -1,3 +1,5 @@
-# 智谱官方 GLM-4.7-Flash。本地开发时复制为 .dev.vars 并填写密钥。
-AI_API_URL="https://open.bigmodel.cn/api/paas/v4/chat/completions"
-AI_API_KEY=""
+# 硅基流动 Qwen/Qwen3-8B（与 wrangler.jsonc 一致）。本地开发时复制为 .dev.vars 并填写密钥。
+SILICONFLOW_API_KEY=""
+# 如需改用智谱或其他 OpenAI 兼容接口：修改 AI_API_URL / AI_MODEL，并改填 AI_API_KEY。
+# AI_API_URL="https://open.bigmodel.cn/api/paas/v4/chat/completions"
+# AI_API_KEY=""

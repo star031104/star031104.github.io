@@ -1,6 +1,6 @@
 ---
 title: 图片记录
-date: 2026-05-07
+date: 2026-05-07 12:00:00
 top_img: /img/index.webp
 description: 浅梦喜欢的图片、生活照片、截图和 AI 视觉作品。
 ---

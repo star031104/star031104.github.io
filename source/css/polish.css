@@ -1,0 +1,443 @@
+/*
+ * Qianmeng Blog — 2026-10 polish layer
+ * 最后加载：只做细节收敛（排版节奏、卡片密度、代码块、移动端），
+ * 颜色全部复用 professional.css 中的 --qm-* 变量，自动适配暗色模式。
+ */
+
+/* ---------- 全局排版 ---------- */
+body {
+  font-feature-settings: "kern";
+}
+
+#article-container {
+  font-size: 1.02rem;
+  line-height: 1.85;
+}
+
+#article-container > h2 {
+  margin: 2.4em 0 0.9em;
+}
+
+#article-container h2 {
+  font-size: clamp(1.32rem, 2vw, 1.6rem);
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+#article-container > h3 {
+  margin: 1.9em 0 0.7em;
+}
+
+#article-container h3 {
+  font-size: 1.18rem;
+  font-weight: 700;
+}
+
+#article-container strong {
+  color: var(--qm-text);
+  font-weight: 700;
+}
+
+#article-container ul,
+#article-container ol {
+  padding-left: 1.4em;
+}
+
+#article-container li + li {
+  margin-top: 0.35em;
+}
+
+#article-container li::marker {
+  color: var(--qm-primary);
+}
+
+#article-container blockquote {
+  padding: 1em 1.3em;
+  border-left-width: 4px;
+  border-radius: 0 var(--qm-radius-sm) var(--qm-radius-sm) 0;
+  color: var(--qm-text-soft);
+}
+
+#article-container blockquote p {
+  margin: 0;
+}
+
+/* ---------- 代码块：修复表格样式误伤导致代码区不铺满 ---------- */
+#article-container figure.highlight {
+  overflow: hidden;
+  border: 1px solid var(--qm-border);
+  border-radius: var(--qm-radius-sm);
+  box-shadow: none;
+}
+
+#article-container figure.highlight table {
+  display: table;
+  width: 100%;
+  margin: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+}
+
+#article-container figure.highlight td.code {
+  width: 100%;
+}
+
+#article-container figure.highlight pre {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+#article-container figure.highlight .gutter pre {
+  color: var(--qm-text-faint);
+  opacity: 0.7;
+}
+
+#article-container figure.highlight .highlight-tools {
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+/* 普通表格：表头更清晰，斑马纹便于横向阅读 */
+#article-container table:not(figure.highlight table) th,
+#article-container table:not(figure.highlight table) td {
+  padding: 0.7em 1em;
+}
+
+#article-container table:not(figure.highlight table) tbody tr:nth-child(even) {
+  background: var(--qm-surface-muted);
+}
+
+/* ---------- 首页：文章列表卡片更紧凑、更易扫读 ---------- */
+/* 首页文章被 homepage-curation 包进了 .recent-post-items，
+   professional.css 中 "#recent-posts > .recent-post-item" 的规则匹配不到，这里统一补上 */
+#recent-posts .recent-post-items > .recent-post-item {
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+  border: 1px solid var(--qm-border);
+  border-radius: var(--qm-radius-lg);
+  background: var(--qm-surface-solid);
+  box-shadow: var(--qm-shadow-sm);
+  transition: transform 0.3s var(--qm-ease), border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#recent-posts .recent-post-items > .recent-post-item:hover {
+  border-color: var(--qm-border-strong);
+  box-shadow: var(--qm-shadow-md);
+  transform: translateY(-4px);
+}
+
+@media screen and (min-width: 769px) {
+  #recent-posts .recent-post-items > .recent-post-item {
+    height: 236px;
+  }
+
+  #recent-posts .recent-post-item .post_cover {
+    width: 40%;
+  }
+
+  #recent-posts .recent-post-item .recent-post-info {
+    width: 60%;
+  }
+}
+
+#recent-posts .recent-post-item .recent-post-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 26px clamp(24px, 3vw, 34px);
+}
+
+#recent-posts .recent-post-item .article-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--qm-text);
+  font-size: clamp(1.12rem, 1.6vw, 1.3rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+  transition: color 0.2s ease;
+}
+
+#recent-posts .recent-post-item:hover .article-title {
+  color: var(--qm-primary-deep);
+}
+
+#recent-posts .recent-post-item .article-meta-wrap {
+  margin: 8px 0 0;
+}
+
+#recent-posts .recent-post-item .content {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  margin-top: 10px;
+  font-size: 0.92rem;
+  line-height: 1.75;
+}
+
+/* ---------- 首页：主题阅读路线改为三张入口卡 ---------- */
+.qm-topic-path {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 26px 0 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.qm-topic-label {
+  grid-column: 1 / -1;
+  color: var(--qm-text-faint);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.qm-topic-path a {
+  position: relative;
+  gap: 4px;
+  padding: 16px 40px 16px 18px;
+  border: 1px solid var(--qm-border);
+  border-radius: 14px;
+  background: var(--qm-surface-solid);
+  box-shadow: var(--qm-shadow-sm);
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition: transform 0.22s ease, border-color 0.22s ease;
+}
+
+.qm-topic-path a::after {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  color: var(--qm-primary);
+  content: "→";
+  transform: translateY(-50%);
+  transition: transform 0.22s ease;
+}
+
+.qm-topic-path a:hover {
+  border-color: var(--qm-border-strong);
+  transform: translateY(-2px);
+}
+
+.qm-topic-path a:hover::after {
+  transform: translate(3px, -50%);
+}
+
+.qm-topic-path a span {
+  font-size: 0.78rem;
+  font-weight: 450;
+}
+
+/* 精选项目卡：标题加重，增加“阅读”提示 */
+.qm-project-card strong {
+  font-weight: 750;
+}
+
+.qm-project-card > span:last-child::after {
+  display: block;
+  margin-top: 8px;
+  color: var(--qm-primary);
+  content: "阅读开发报告 →";
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.qm-project-card-primary > span:last-child {
+  font-size: 0.92rem;
+}
+
+.qm-project-card img {
+  transition: transform 0.6s var(--qm-ease);
+}
+
+.qm-project-card:hover img {
+  transform: scale(1.03);
+}
+
+/* ---------- 侧栏 ---------- */
+.aside-content .card-widget {
+  padding: 20px 22px;
+}
+
+.aside-content .item-headline {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.aside-content .aside-list > .aside-list-item .content > .title {
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.aside-content .aside-list > .aside-list-item .content > time {
+  font-size: 0.74rem;
+}
+
+.aside-content .card-info .author-info-description {
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: var(--qm-text-soft);
+}
+
+#card-toc .toc-percentage {
+  font-size: 0.85rem !important;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+#card-toc .toc-content .toc-link {
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+/* ---------- 文章页 ---------- */
+#post-info .post-title {
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+#post .tag_share .post-meta__tags {
+  border-radius: 999px;
+}
+
+.pagination-related,
+.relatedPosts .pagination-related {
+  border-radius: var(--qm-radius-sm);
+}
+
+/* ---------- 独立页面：技术文档/开发报告条目 ---------- */
+.docs-item {
+  display: flex !important;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 700;
+}
+
+.docs-item span {
+  font-weight: 450;
+}
+
+/* ---------- 页脚 ---------- */
+#footer .footer-other {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.qm-footer-motto {
+  display: block;
+  opacity: 0.85;
+}
+
+.qm-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  margin-top: 10px;
+  font-size: 0.86rem;
+}
+
+.qm-footer-links a {
+  color: rgba(255, 255, 255, 0.78) !important;
+  text-decoration: none !important;
+  transition: color 0.2s ease;
+}
+
+.qm-footer-links a:hover {
+  color: #fff !important;
+}
+
+/* ---------- AI 助手入口：与右下角工具按钮并排，不再遮挡侧栏和按钮 ---------- */
+#ai-assistant-btn {
+  right: 72px;
+  bottom: 28px;
+  width: 52px;
+  height: 52px;
+}
+
+/* ---------- 暗色模式细节 ---------- */
+[data-theme='dark'] #recent-posts .recent-post-items > .recent-post-item {
+  background: var(--qm-surface-solid);
+}
+
+[data-theme='dark'] .card-info-social-icons .social-icon[title="Github"] i,
+[data-theme='dark'] .social-icon[title="Github"] i,
+[data-theme='dark'] .social-icon[aria-label="Github"] i {
+  color: #e8ecf7 !important;
+}
+
+[data-theme='dark'] #article-container figure.highlight td.code pre {
+  color: #d7ddef;
+}
+
+#article-container figure.highlight td.code pre {
+  color: var(--qm-text);
+}
+
+/* ---------- 移动端 ---------- */
+@media screen and (max-width: 768px) {
+  .layout {
+    margin-top: 20px;
+    padding: 0 14px;
+  }
+
+  #recent-posts .recent-post-item .post_cover {
+    height: 190px;
+  }
+
+  #recent-posts .recent-post-item .recent-post-info {
+    padding: 20px 20px 22px;
+  }
+
+  .qm-topic-path {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .qm-section-heading {
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+
+  #article-container {
+    font-size: 1rem;
+  }
+
+  #ai-assistant-btn {
+    right: 62px;
+    bottom: 22px;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qm-topic-path a,
+  .qm-project-card img {
+    transition: none;
+  }
+}
+
+/* 阅读路线页：卡片内标题不继承正文 h2 的大段落间距 */
+#article-container .start-path h2,
+#article-container .docs-section h2 {
+  margin: 8px 0 6px;
+  font-size: 1.15rem;
+}
+
+#article-container .start-path > p {
+  margin: 0 0 14px;
+}

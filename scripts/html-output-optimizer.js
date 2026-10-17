@@ -124,12 +124,15 @@ hexo.extend.filter.register('after_render:html', html => {
     ogImageDimensions && !output.includes('property="og:image:width"') ? `<meta property="og:image:width" content="${ogImageDimensions[0]}"><meta property="og:image:height" content="${ogImageDimensions[1]}">` : ''
   ].join('')
 
+  const isHomepage = output.includes(`<link rel="canonical" href="${siteUrl}/">`)
+  const priorityImage = isHomepage ? '/img/index.webp' : (ogImagePath || '/img/index.webp')
+
   const professionalHead = [
     '<meta name="color-scheme" content="light dark">',
     '<meta name="mobile-web-app-capable" content="yes">',
     '<meta name="apple-mobile-web-app-title" content="浅梦的博客">',
     '<link rel="manifest" href="/site.webmanifest">',
-    `<link rel="preload" as="image" href="${ogImagePath || '/img/index.webp'}" type="image/webp" fetchpriority="high">`,
+    `<link rel="preload" as="image" href="${priorityImage}" type="image/webp" fetchpriority="high">`,
     socialMeta
   ].join('')
   output = output.replace('</head>', `${professionalHead}</head>`)

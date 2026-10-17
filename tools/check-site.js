@@ -2,6 +2,7 @@
 
 const fs = require('node:fs')
 const path = require('node:path')
+const { assetHash } = require('../scripts/asset-versioning')
 
 const rootDir = path.resolve(__dirname, '..')
 const publicDir = path.join(rootDir, 'public')
@@ -86,7 +87,8 @@ if (!fs.existsSync(publicDir)) {
 
       const ogImage = html.match(/<meta property="og:image" content="([^"]+)">/i)?.[1]
       const preloadImage = html.match(/<link rel="preload" as="image" href="([^"]+)"/i)?.[1]
-      if (ogImage && preloadImage) {
+      // 首页首屏是全屏背景图（index.webp），社交分享图单独使用 og-image.webp，两者本就不同。
+      if (ogImage && preloadImage && relative !== 'index.html') {
         const ogPath = new URL(ogImage).pathname
         if (ogPath !== preloadImage) errors.push(`${relative}: 首屏预加载图片与页面分享图不一致。`)
       }
@@ -151,9 +153,52 @@ if (!fs.existsSync(publicDir)) {
       for (const item of knowledge) {
         if (!item.id || !item.title || !item.url || !item.content) errors.push('知识库存在字段不完整的片段。')
         if (item.url && !localTargetToFile(item.url)) errors.push(`知识库链接不存在 ${item.url}`)
+        if (!Array.isArray(item.categories) || !item.categories.length) errors.push(`知识库文章缺少分类元数据：${item.title || item.url}`)
       }
     } catch (error) {
       errors.push(`知识库 JSON 无法解析：${error.message}`)
+    }
+  }
+
+  const homepagePath = path.join(publicDir, 'index.html')
+  if (fs.existsSync(homepagePath)) {
+    const homepage = fs.readFileSync(homepagePath, 'utf8')
+    if (!homepage.includes('qm-hero-lede') || !homepage.includes('qm-hero-primary')) {
+      errors.push('首页缺少定位文案或主要行动入口。')
+    }
+    if (!homepage.includes('qm-featured-title') || !homepage.includes('qm-topic-path')) {
+      errors.push('首页缺少精选项目或主题阅读路线。')
+    }
+    if (!homepage.includes('href="/start/"') && !fs.existsSync(path.join(publicDir, 'start', 'index.html'))) {
+      errors.push('阅读路线页面未生成或首页没有入口。')
+    }
+    if (!/<link rel="preload" as="image" href="\/img\/index\.webp"[^>]*fetchpriority="high"/i.test(homepage)) {
+      errors.push('首页首屏背景图未以高优先级预加载。')
+    }
+    for (const match of homepage.matchAll(/(?:href|src)="\/((?:css|js)\/[^"?]+)(?:\?v=([^"&]+))?"/gi)) {
+      const expected = assetHash(path.join(rootDir, 'source'), match[1])
+      if (!match[2]) errors.push(`首页静态资源缺少版本号：/${match[1]}`)
+      else if (expected && match[2] !== expected) errors.push(`首页静态资源版本号与内容哈希不一致：/${match[1]}`)
+    }
+    for (const asset of ['css/custom.css', 'css/professional.css', 'css/assistant-refinement.css', 'css/polish.css', 'js/site-enhancements.js', 'js/ai-assistant.js']) {
+      const sourceAsset = path.join(rootDir, 'source', asset)
+      const generatedAsset = path.join(publicDir, asset)
+      if (!fs.existsSync(sourceAsset) || !fs.existsSync(generatedAsset)) {
+        errors.push(`前端资源未完整生成：${asset}`)
+      } else if (fs.readFileSync(sourceAsset, 'utf8') !== fs.readFileSync(generatedAsset, 'utf8')) {
+        errors.push(`生成站点中的前端资源与源码不一致：${asset}`)
+      }
+    }
+  }
+
+  const startPagePath = path.join(publicDir, 'start', 'index.html')
+  if (!fs.existsSync(startPagePath)) errors.push('缺少“从这里开始”阅读路线页面。')
+
+  const headersPath = path.join(publicDir, '_headers')
+  if (fs.existsSync(headersPath)) {
+    const cacheHeaders = fs.readFileSync(headersPath, 'utf8')
+    if (!/\/css\/\*[\s\S]*?max-age=31536000, immutable/i.test(cacheHeaders) || !/\/js\/\*[\s\S]*?max-age=31536000, immutable/i.test(cacheHeaders)) {
+      warnings.push('CSS/JS 未启用带版本号资源的长期缓存策略。')
     }
   }
 }
