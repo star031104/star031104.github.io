@@ -180,7 +180,7 @@ if (!fs.existsSync(publicDir)) {
       if (!match[2]) errors.push(`首页静态资源缺少版本号：/${match[1]}`)
       else if (expected && match[2] !== expected) errors.push(`首页静态资源版本号与内容哈希不一致：/${match[1]}`)
     }
-    for (const asset of ['css/custom.css', 'css/professional.css', 'css/assistant-refinement.css', 'css/polish.css', 'js/site-enhancements.js', 'js/ai-assistant.js']) {
+    for (const asset of ['css/theme.css', 'css/ai-assistant.css', 'js/site-enhancements.js', 'js/ai-assistant.js']) {
       const sourceAsset = path.join(rootDir, 'source', asset)
       const generatedAsset = path.join(publicDir, asset)
       if (!fs.existsSync(sourceAsset) || !fs.existsSync(generatedAsset)) {

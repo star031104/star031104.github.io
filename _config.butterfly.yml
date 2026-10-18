@@ -762,21 +762,21 @@ site_verification:
 
 theme_color:
   enable: true
-  main: "#5b6ff5"
-  paginator: "#5b6ff5"
-  button_hover: "#7c5ce7"
-  text_selection: "#8a7cf4"
-  link_color: "#5368dc"
-  meta_color: "#77819a"
-  hr_color: "#dce2f0"
-  code_foreground: "#d95777"
-  code_background: "rgba(91, 111, 245, .08)"
-  toc_color: "#5b6ff5"
-  blockquote_padding_color: "#5b6ff5"
-  blockquote_background_color: "rgba(91, 111, 245, .06)"
-  scrollbar_color: "#8a96d8"
-  meta_theme_color_light: "#f5f7fc"
-  meta_theme_color_dark: "#0b1020"
+  main: "#3f51d4"
+  paginator: "#3f51d4"
+  button_hover: "#3141b8"
+  text_selection: "#3f51d4"
+  link_color: "#3f51d4"
+  meta_color: "#868c99"
+  hr_color: "#e4e2dc"
+  code_foreground: "#c4472f"
+  code_background: "rgba(196, 71, 47, .09)"
+  toc_color: "#3f51d4"
+  blockquote_padding_color: "#3f51d4"
+  blockquote_background_color: "rgba(63, 81, 212, .06)"
+  scrollbar_color: "#b9b7b0"
+  meta_theme_color_light: "#f6f5f2"
+  meta_theme_color_dark: "#0e1014"
 
 # The user interface setting of category and tag page
 # Choose: index - same as Homepage UI / default - same as archives UI
@@ -1062,10 +1062,8 @@ css_prefix: true
 # Insert the code to head (before '</head>' tag) and the bottom (before '</body>' tag)
 inject:
   head:
-    - <link rel="stylesheet" href="/css/custom.css">
-    - <link rel="stylesheet" href="/css/professional.css">
-    - <link rel="stylesheet" href="/css/assistant-refinement.css">
-    - <link rel="stylesheet" href="/css/polish.css">
+    - <link rel="stylesheet" href="/css/theme.css">
+    - <link rel="stylesheet" href="/css/ai-assistant.css">
     - <link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
   bottom:
     - <script defer src="/js/site-enhancements.js"></script>

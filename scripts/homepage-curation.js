@@ -77,3 +77,16 @@ hexo.extend.filter.register('after_render:html', html => {
   const metadata = `<aside class="qm-reading-bar" aria-label="文章阅读信息"><span><i aria-hidden="true">◷</i> 预计阅读 ${minutes} 分钟</span>${category ? `<span class="qm-reading-category">${category}</span>` : ''}${updated ? `<span>最近更新 ${updated}</span>` : ''}</aside>`
   return html.replace(articleMatch[0], articleMatch[0].replace(articleMatch[1], `${metadata}${articleMatch[1]}`))
 }, 30)
+
+// 独立页面（技术文档、开发报告、随笔等）页头：在标题下方补充页面简介，
+// 只有页面写了专属 description 时才显示，避免重复站点默认描述。
+hexo.extend.filter.register('after_render:html', html => {
+  const marker = /(<div id="page-site-info"><h1 id="site-title">[^<]*<\/h1>)(<\/div>)/
+  if (!marker.test(html)) return html
+
+  const description = html.match(/<meta name="description" content="([^"]*)">/i)?.[1]?.trim()
+  const siteDescription = String(hexo.config.description || '').trim()
+  if (!description || description === siteDescription) return html
+
+  return html.replace(marker, `$1<p class="qm-page-desc">${description}</p>$2`)
+}, 30)

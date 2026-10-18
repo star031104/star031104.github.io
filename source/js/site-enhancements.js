@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeColor = document.querySelector('meta[name="theme-color"]')
   const syncThemeColor = () => {
     if (!themeColor) return
-    themeColor.content = document.documentElement.dataset.theme === 'dark' ? '#0b1020' : '#f4f6fb'
+    themeColor.content = document.documentElement.dataset.theme === 'dark' ? '#0e1014' : '#f6f5f2'
   }
   syncThemeColor()
   new MutationObserver(syncThemeColor).observe(document.documentElement, {

@@ -113,7 +113,7 @@ async function verifyPublishedServices() {
   const workerConfig = JSON.parse(fs.readFileSync(path.join(rootDir, 'worker', 'wrangler.jsonc'), 'utf8'))
   const workerSource = fs.readFileSync(path.join(rootDir, 'worker', 'src', 'index.ts'), 'utf8')
   const expectedWorkerVersion = workerSource.match(/const VERSION = '([^']+)'/)?.[1]
-  const assistantAssetVersion = assetHash(path.join(rootDir, 'source'), 'css/assistant-refinement.css')
+  const assistantAssetVersion = assetHash(path.join(rootDir, 'source'), 'css/ai-assistant.css')
   if (!assistantAssetVersion) throw new Error('无法计算 AI 助手资源版本。')
 
   let lastError = '线上服务暂未返回可用内容。'
@@ -125,7 +125,7 @@ async function verifyPublishedServices() {
       }
 
       const { html, worker, knowledge } = snapshot
-      if (!html.includes('qm-featured-title') || !html.includes(`assistant-refinement.css?v=${assistantAssetVersion}`)) {
+      if (!html.includes('qm-featured-title') || !html.includes(`ai-assistant.css?v=${assistantAssetVersion}`)) {
         throw new Error('线上首页仍未包含本次首页和 AI 助手资源版本。')
       }
       if (!worker.ok || worker.version !== expectedWorkerVersion || worker.model !== workerConfig.vars.AI_MODEL || worker.provider !== 'siliconflow') {
