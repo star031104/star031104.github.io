@@ -2,6 +2,8 @@
 title: 浅梦 AI 助手 Runtime 开发报告：一个本地语音桌面 Agent 的工程化实现
 date: 2026-05-19 12:00:00
 updated: 2026-09-14 12:00:00
+permalink: 2026/05/19/qianmeng-ai-voice-assistant/
+series: AI 项目开发复盘
 categories:
   - 开发报告
 tags:
@@ -221,29 +223,21 @@ AI_voice_assistant/
 
 可以将项目运行流程抽象为：
 
-```text
-用户输入
-  ├── 文本输入：Popup / CLI / WebUI
-  └── 语音输入：麦克风 → VAD → 声纹验证 → FunASR
-        ↓
-SessionRunner.run_user_turn()
-        ↓
-意图路由 Intent Router
-        ↓
-┌───────────────────────────────┐
-│ 1. Direct Tool Fast Path       │  确定性任务：时间、天气、窗口、简单搜索等
-│ 2. Skill Workflow Engine       │  命中技能包时执行工作流
-│ 3. LLM Agent Loop              │  复杂任务：规划、工具调用、反思、回答
-└───────────────────────────────┘
-        ↓
-Tool Registry 执行工具 / RAG / Memory / Screen / Desktop
-        ↓
-Final Renderer 生成显示回答和 TTS 回答
-        ↓
-Popup / CLI / WebUI 显示
-        ↓
-GPT-SoVITS 语音播放
-```
+{% mermaid %}
+flowchart TD
+  A["文本输入<br/>Popup / CLI / WebUI"] --> R
+  V["语音输入<br/>麦克风 → VAD → 声纹验证 → FunASR"] --> R
+  R["SessionRunner<br/>run_user_turn()"] --> I{"意图路由<br/>Intent Router"}
+  I -->|"确定性任务：时间、天气、窗口、简单搜索"| P1["1. Direct Tool Fast Path"]
+  I -->|"命中技能包时执行工作流"| P2["2. Skill Workflow Engine"]
+  I -->|"复杂任务：规划、工具调用、反思、回答"| P3["3. LLM Agent Loop"]
+  P1 --> T["Tool Registry<br/>工具 / RAG / Memory / Screen / Desktop"]
+  P2 --> T
+  P3 --> T
+  T --> F["Final Renderer<br/>生成显示回答和 TTS 回答"]
+  F --> D["Popup / CLI / WebUI 显示"]
+  D --> S["GPT-SoVITS 语音播放"]
+{% endmermaid %}
 
 该流程的关键设计是：**所有输入最后都归一到 `SessionRunner.run_user_turn()`**。也就是说，无论用户是打字、语音、WebUI 输入，还是桌面弹窗输入，后续都复用同一套 Runtime。
 
@@ -946,3 +940,7 @@ tests/
 目前系统已经具备本地桌面 Agent 的完整骨架，但“能力多”也意味着启动成本、安全边界和可观测性会成为下一阶段的重点。比继续增加入口更重要的，是统一任务状态、收紧高风险工具权限、让模型服务状态可见，并把失败恢复做成用户能够理解的产品体验。
 
 如果这些基础继续完善，它就不再只是一个能听、能说、能搜索的助手，而会成为一个真正可以在本地长期运行、由用户掌握数据和控制权的个人 Agent Runtime。
+
+## 系列文章
+
+{% series %}

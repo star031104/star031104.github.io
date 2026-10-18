@@ -225,10 +225,10 @@ reward:
 # Post edit
 # Easily browse and edit blog source code online.
 post_edit:
-  enable: false
+  enable: true
   # url: https://github.com/user-name/repo-name/edit/branch-name/subdirectory-name/
   # For example: https://github.com/jerryc127/butterfly.js.org/edit/main/source/
-  url:
+  url: https://github.com/star031104/star031104.github.io/edit/source/source/
 
 # Related Articles
 related_post:
@@ -343,11 +343,11 @@ aside:
   card_post_series:
     enable: true
     # The title shows the series name
-    series_title: false
+    series_title: true
     # Order by title or date
     orderBy: 'date'
     # Sort of order. 1, asc for ascending; -1, desc for descending
-    order: -1
+    order: 1
   card_webinfo:
     enable: false
     post_count: true
@@ -443,9 +443,9 @@ wordcount:
 
 # Busuanzi count for PV / UV in site
 busuanzi:
-  site_uv: true
-  site_pv: true
-  page_pv: true
+  site_uv: false
+  site_pv: false
+  page_pv: false
 
 # --------------------------------------
 # Math
@@ -478,7 +478,9 @@ math:
 search:
   # Choose: algolia_search / local_search / docsearch
   # leave it empty if you don't need search
-  use: local_search
+  # pagefind 为自定义方案：主题只渲染搜索按钮，交互由 source/js/pagefind-search.js 接管，
+  # 索引在 npm run build 时由 Pagefind 生成到 public/pagefind/。
+  use: pagefind
   placeholder: 搜索文章
 
   # Algolia Search
@@ -921,9 +923,9 @@ lightbox:
 
 # Series
 series:
-  enable: false
+  enable: true
   # Order by title or date
-  orderBy: 'title'
+  orderBy: 'date'
   # Sort of order. 1, asc for ascending; -1, desc for descending
   order: 1
   number: true
@@ -937,7 +939,7 @@ abcjs:
 # Mermaid
 # https://github.com/mermaid-js/mermaid
 mermaid:
-  enable: false
+  enable: true
   # Write Mermaid diagrams using code blocks
   code_write: false
   # built-in themes: default / forest / dark / neutral
@@ -1067,6 +1069,7 @@ inject:
     - <link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
   bottom:
     - <script defer src="/js/site-enhancements.js"></script>
+    - <script defer src="/js/pagefind-search.js"></script>
     - <script defer src="/js/ai-assistant.js"></script>
 
 # CDN Settings

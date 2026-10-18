@@ -2,6 +2,7 @@
 title: PPT-Master：从 SVG 到可编辑 PowerPoint
 date: 2026-05-09 23:30:00
 updated: 2026-09-14 12:00:00
+permalink: 2026/05/09/ppt-master-svg-to-pptx/
 categories:
   - 技术文档
 tags:
@@ -34,19 +35,14 @@ PPT-Master 值得研究的地方，正是它把“视觉生成”和“Office �
 
 可以把整体流程概括为：
 
-```text
-需求与材料
-  ↓
-大模型组织内容与页面结构
-  ↓
-HTML / SVG 视觉表达
-  ↓
-SVG 解析与对象转换
-  ↓
-DrawingML / PowerPoint Shape
-  ↓
-可编辑 PPTX
-```
+{% mermaid %}
+flowchart TD
+  A["需求与材料"] --> B["大模型组织内容与页面结构"]
+  B --> C["HTML / SVG 视觉表达"]
+  C --> D["SVG 解析与对象转换"]
+  D --> E["DrawingML / PowerPoint Shape"]
+  E --> F["可编辑 PPTX"]
+{% endmermaid %}
 
 这里的关键不是“大模型直接写出 PPTX”，而是先让模型在更适合表达布局和图形的中间层中完成页面，再把中间层转换成 Office 能理解的对象。
 

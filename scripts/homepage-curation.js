@@ -20,7 +20,7 @@ const showcase = `
           <span class="qm-tile-cta">阅读开发报告 →</span>
         </span>
       </a>
-      <a class="qm-tile" href="/2026/08/12/开发报告-砚火InkForge-Local/">
+      <a class="qm-tile" href="/2026/08/12/inkforge-local/">
         <img src="/img/开发报告/inkforge-local-cover.webp" alt="砚火 InkForge Local 项目视觉" width="1600" height="900" loading="lazy" decoding="async">
         <span class="qm-tile-body">
           <span class="qm-tile-kicker">LOCAL AI · LONG-FORM WRITING</span>
@@ -28,7 +28,7 @@ const showcase = `
           <span class="qm-tile-desc">让本地 AI 长篇写作拥有记忆、约束与可追溯性。</span>
         </span>
       </a>
-      <a class="qm-tile" href="/2026/05/19/开发报告-AI语音助手/">
+      <a class="qm-tile" href="/2026/05/19/qianmeng-ai-voice-assistant/">
         <img src="/img/generated-covers/ai-voice-assistant-image25.webp" alt="浅梦 AI 语音助手项目视觉" width="1600" height="900" loading="lazy" decoding="async">
         <span class="qm-tile-body">
           <span class="qm-tile-kicker">AGENT · VOICE · RAG</span>

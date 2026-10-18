@@ -2,6 +2,8 @@
 title: Qwen 本地部署记录
 date: 2026-05-07 12:00:00
 updated: 2026-09-14 12:00:00
+permalink: 2026/05/07/qwen-local-deployment/
+series: 本地 AI 环境搭建
 categories:
   - 技术文档
 tags:
@@ -131,3 +133,7 @@ curl http://127.0.0.1:8000/v1/chat/completions \
 这套部署已经可以满足中文问答、本地开发和 Agent 后端的基本需要。真正决定体验的不是某一个启动参数，而是模型规模、量化、GPU 卸载、上下文与响应速度之间的平衡。
 
 相关资料：[llama.cpp 项目](https://github.com/ggml-org/llama.cpp) · [CUDA 构建说明](https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md) · [llama-server 使用说明](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
+
+## 系列文章
+
+{% series %}

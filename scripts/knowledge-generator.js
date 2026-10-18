@@ -10,8 +10,16 @@ function stripFrontMatter(markdown) {
   return markdown.replace(/^---\s*[\r\n]+[\s\S]*?[\r\n]+---\s*[\r\n]*/, '')
 }
 
+// Mermaid 流程图只保留节点与连线文字，避免把图表语法写进 AI 知识库。
+function mermaidToText(_, diagram) {
+  const labels = [...diagram.matchAll(/"([^"]+)"/g)].map(match => match[1].replace(/<br\s*\/?>/gi, ' '))
+  return labels.length ? `\n流程：${labels.join(' → ')}\n` : '\n'
+}
+
 function cleanMarkdown(markdown) {
   return stripFrontMatter(markdown)
+    .replace(/\{%\s*mermaid[^%]*%\}([\s\S]*?)\{%\s*endmermaid\s*%\}/g, mermaidToText)
+    .replace(/\{%[^%]*%\}/g, '')
     .replace(/```([^\n]*)\n([\s\S]*?)```/g, (_, language, code) => `\n代码${language ? `（${language.trim()}）` : ''}：\n${code.trim()}\n`)
     .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')

@@ -1,7 +1,9 @@
 ---
 title: WSL2 CUDA 配置记录
-date: 2026-05-07 12:00:00
+date: 2026-05-07 11:00:00
 updated: 2026-09-14 12:00:00
+permalink: 2026/05/07/wsl2-cuda-setup/
+series: 本地 AI 环境搭建
 categories:
   - 技术文档
 tags:
@@ -160,3 +162,7 @@ WSL 网络模式和代理软件配置会影响宿主机与 Linux 子系统的互
 - 本地服务没有无意绑定到公网或局域网地址。
 
 相关资料：[Microsoft WSL 安装说明](https://learn.microsoft.com/windows/wsl/install) · [NVIDIA CUDA on WSL 指南](https://docs.nvidia.com/cuda/wsl-user-guide/)
+
+## 系列文章
+
+{% series %}

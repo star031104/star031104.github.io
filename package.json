@@ -11,7 +11,7 @@
   },
   "packageManager": "npm@11.16.0",
   "scripts": {
-    "build": "hexo generate",
+    "build": "hexo generate && pagefind --site public",
     "check": "node tools/check-site.js",
     "test:site": "npm run clean && npm run build && npm run check",
     "test:worker": "npm --workspace worker test",
@@ -19,7 +19,6 @@
     "test": "npm run test:site && npm run test:worker && npm run typecheck:worker",
     "build:sites": "npm run test && node tools/build-sites.js",
     "clean": "hexo clean",
-    "deploy": "hexo deploy",
     "deploy:cloudflare": "npm test && node tools/deploy-cloudflare.js",
     "dev:ai": "npm --workspace worker run dev",
     "deploy:ai:dry": "npm --workspace worker run deploy:dry",
@@ -30,12 +29,10 @@
   },
   "dependencies": {
     "hexo": "^8.0.0",
-    "hexo-deployer-git": "^4.0.0",
     "hexo-generator-archive": "^2.0.0",
     "hexo-generator-category": "^2.0.0",
     "hexo-generator-feed": "^4.0.0",
     "hexo-generator-index": "^4.0.0",
-    "hexo-generator-search": "^2.4.3",
     "hexo-generator-sitemap": "^3.0.1",
     "hexo-generator-tag": "^2.0.0",
     "hexo-renderer-ejs": "^2.0.0",
@@ -43,5 +40,8 @@
     "hexo-renderer-pug": "^3.0.0",
     "hexo-renderer-stylus": "^3.0.1",
     "hexo-server": "^3.0.0"
+  },
+  "devDependencies": {
+    "pagefind": "^1.5.2"
   }
 }

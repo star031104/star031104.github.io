@@ -101,6 +101,44 @@ if (!fs.existsSync(publicDir)) {
     }
   }
 
+  // 文章页：必须使用英文 permalink，并标注 Pagefind 索引范围。
+  for (const file of htmlFiles) {
+    const relative = path.relative(publicDir, file).replaceAll(path.sep, '/')
+    const html = fs.readFileSync(file, 'utf8')
+    if (!html.includes('<div id="post">')) continue
+    if (/[^\x00-\x7F]/.test(relative)) {
+      errors.push(`${relative}: 文章链接包含中文等非 ASCII 字符，请在 front-matter 中设置英文 permalink。`)
+    }
+    if (!html.includes('data-pagefind-body')) errors.push(`${relative}: 文章正文未标注 Pagefind 索引范围。`)
+  }
+
+  const pagefindEntry = path.join(publicDir, 'pagefind', 'pagefind-entry.json')
+  if (fs.existsSync(pagefindEntry)) {
+    try {
+      const entry = JSON.parse(fs.readFileSync(pagefindEntry, 'utf8'))
+      const pageCount = Object.values(entry.languages || {}).reduce((sum, language) => sum + (language.page_count || 0), 0)
+      if (!pageCount) errors.push('Pagefind 索引为空。')
+    } catch (error) {
+      errors.push(`Pagefind 索引入口无法解析：${error.message}`)
+    }
+  }
+
+  const redirectsPath = path.join(publicDir, '_redirects')
+  if (fs.existsSync(redirectsPath)) {
+    for (const line of fs.readFileSync(redirectsPath, 'utf8').split(/\r?\n/)) {
+      const rule = line.trim()
+      if (!rule || rule.startsWith('#')) continue
+      const [from, to] = rule.split(/\s+/)
+      if (!from || !to) {
+        errors.push(`_redirects 规则格式错误：${rule}`)
+        continue
+      }
+      if (!from.includes('*') && localTargetToFile(from)) errors.push(`_redirects 来源路径仍然存在，会被页面覆盖：${from}`)
+      const target = to.replace(':splat', '')
+      if (target.startsWith('/') && !localTargetToFile(target)) errors.push(`_redirects 目标不存在：${to}`)
+    }
+  }
+
   const sitemapPath = path.join(publicDir, 'sitemap.xml')
   if (!fs.existsSync(sitemapPath)) errors.push('缺少 sitemap.xml。')
   else if (/blog-knowledge\.json/i.test(fs.readFileSync(sitemapPath, 'utf8'))) {
@@ -113,7 +151,12 @@ if (!fs.existsSync(publicDir)) {
     '_headers',
     'site.webmanifest',
     'js/site-enhancements.js',
-    'data/blog-knowledge.json'
+    'js/pagefind-search.js',
+    'data/blog-knowledge.json',
+    '_redirects',
+    'pagefind/pagefind-ui.js',
+    'pagefind/pagefind-ui.css',
+    'pagefind/pagefind-entry.json'
   ]
   for (const required of requiredFiles) {
     if (!fs.existsSync(path.join(publicDir, required))) errors.push(`缺少生成文件 ${required}。`)
@@ -180,7 +223,7 @@ if (!fs.existsSync(publicDir)) {
       if (!match[2]) errors.push(`首页静态资源缺少版本号：/${match[1]}`)
       else if (expected && match[2] !== expected) errors.push(`首页静态资源版本号与内容哈希不一致：/${match[1]}`)
     }
-    for (const asset of ['css/theme.css', 'css/ai-assistant.css', 'js/site-enhancements.js', 'js/ai-assistant.js']) {
+    for (const asset of ['css/theme.css', 'css/ai-assistant.css', 'js/site-enhancements.js', 'js/pagefind-search.js', 'js/ai-assistant.js']) {
       const sourceAsset = path.join(rootDir, 'source', asset)
       const generatedAsset = path.join(publicDir, asset)
       if (!fs.existsSync(sourceAsset) || !fs.existsSync(generatedAsset)) {

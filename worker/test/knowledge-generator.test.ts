@@ -30,3 +30,25 @@ describe('knowledge chunk merging', () => {
     expect(result).toHaveLength(2)
   })
 })
+
+describe('knowledge markdown cleaning', () => {
+  const { cleanMarkdown } = require('../../scripts/knowledge-generator.js') as {
+    cleanMarkdown: (markdown: string) => string
+  }
+
+  it('turns mermaid diagrams into readable flow text and drops Hexo tags', () => {
+    const result = cleanMarkdown([
+      '{% mermaid %}',
+      'flowchart TD',
+      '  A["材料导入"] -->|"解析、切分"| B["证据图谱<br/>来源登记"]',
+      '{% endmermaid %}',
+      '',
+      '## 系列文章',
+      '',
+      '{% series %}'
+    ].join('\n'))
+    expect(result).toContain('流程：材料导入 → 解析、切分 → 证据图谱 来源登记')
+    expect(result).not.toContain('flowchart')
+    expect(result).not.toContain('{%')
+  })
+})
