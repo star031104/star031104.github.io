@@ -12,11 +12,11 @@ description: 浅梦的 AI 项目开发报告、系统架构分析与工程复盘
   <a class="report-card" href="/2026/10/18/ai-life/">
     <img class="report-card-image" src="/img/generated-covers/ai-life-cover.webp" alt="ai-life AI 伴侣项目封面" width="1672" height="941" loading="lazy" decoding="async">
     <div class="report-top">
-      <span class="report-badge">ai-life · v8.6</span>
+      <span class="report-badge">ai-life · v12.0</span>
       <span class="report-date">2026-10-18</span>
     </div>
-    <div class="report-title">有自己生活、会主动找你的本地 AI 伴侣</div>
-    <div class="report-desc">在 Telegram 里陪伴你：长期记忆、会衰减的情绪、自己的日程与故事线，关机前道别、开机后补上错过的事。</div>
+    <div class="report-title">有自己生活、会主动找你的 AI 伴侣</div>
+    <div class="report-desc">QQ 私聊、QQ 群、微信群三个角色一个仓库：长期记忆、会衰减的情绪、自己的日程与故事线，照着真实群聊改出来的分寸。</div>
     <div class="report-result"><b>关注</b> 混合记忆检索 · 主动消息分寸 · 免费接口稳定性</div>
   </a>
 
