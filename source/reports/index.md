@@ -12,34 +12,34 @@ description: 浅梦的 AI 项目开发报告、系统架构分析与工程复盘
   <a class="report-card" href="/2026/10/18/ai-life/">
     <img class="report-card-image" src="/img/generated-covers/ai-life-cover.webp" alt="ai-life AI 伴侣项目封面" width="1672" height="941" loading="lazy" decoding="async">
     <div class="report-top">
-      <span class="report-badge">ai-life · v8.6</span>
+      <span class="report-badge">ai-life · v12.0</span>
       <span class="report-date">2026-10-18</span>
     </div>
-    <div class="report-title">有自己生活、会主动找你的本地 AI 伴侣</div>
-    <div class="report-desc">在 Telegram 里陪伴你：长期记忆、会衰减的情绪、自己的日程与故事线，关机前道别、开机后补上错过的事。</div>
-    <div class="report-result"><b>关注</b> 混合记忆检索 · 主动消息分寸 · 免费接口稳定性</div>
+    <div class="report-title">有自己生活、会主动找你的 AI 伴侣</div>
+    <div class="report-desc">QQ 私聊、QQ 群、微信群三个角色一个仓库：长期记忆、会衰减的情绪、自己的日程与故事线，照着真实群聊改出来的分寸。</div>
+    <div class="report-result"><b>关注</b> 混合记忆检索 · 群聊开口门控 · 服务器部署</div>
   </a>
 
   <a class="report-card" href="/2026/09/04/yingzhang-ai-ppt/">
     <img class="report-card-image" src="/img/开发报告/yingzhang-ai-ppt-cover.webp" alt="映章 AI PPT 项目封面" width="1600" height="900" loading="lazy" decoding="async">
     <div class="report-top">
-      <span class="report-badge">AI 演示生产 · 持续迭代</span>
-      <span class="report-date">2026-09-04</span>
+      <span class="report-badge">映章 · v0.2</span>
+      <span class="report-date">更新于 2026-10-20</span>
     </div>
     <div class="report-title">从材料到可编辑演示的 AI PPT 生产系统</div>
-    <div class="report-desc">理解 Word、PDF 与表格材料，建立证据关系，再生成可继续编辑的 PowerPoint。</div>
-    <div class="report-result"><b>关注</b> 证据追溯 · 有界工作流 · 页面级验证</div>
+    <div class="report-desc">读懂 Word、PDF 与表格材料，数字有出处，每页多候选实测评分，导出与预览一致的原生可编辑 PowerPoint。</div>
+    <div class="report-result"><b>关注</b> 数字拦截 · 多候选评分 · 场景驱动导出</div>
   </a>
 
   <a class="report-card" href="/2026/08/12/inkforge-local/">
     <img class="report-card-image" src="/img/开发报告/inkforge-local-cover.webp" alt="砚火 InkForge Local 项目封面" width="1600" height="900" loading="lazy" decoding="async">
     <div class="report-top">
-      <span class="report-badge">InkForge Local · v0.20</span>
-      <span class="report-date">更新于 2026-09-03</span>
+      <span class="report-badge">InkForge Local · v0.37</span>
+      <span class="report-date">更新于 2026-10-20</span>
     </div>
     <div class="report-title">砚火：本地 AI 长篇小说工作台</div>
-    <div class="report-desc">为本地长篇创作建立可持续的记忆、事实约束与恢复机制。</div>
-    <div class="report-result"><b>关注</b> Canon Lock · 记忆事务 · 上下文快照</div>
+    <div class="report-desc">从一句灵感到全文：带正文证据的长期记忆、五类分项审校、开写前设定预检，以及可中断恢复的自动导演。</div>
+    <div class="report-result"><b>关注</b> 证据记忆 · 分项审校 · 自动导演</div>
   </a>
 
   <a class="report-card" href="/2026/05/19/qianmeng-ai-voice-assistant/">
