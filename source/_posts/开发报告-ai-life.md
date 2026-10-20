@@ -406,7 +406,7 @@ irm https://raw.githubusercontent.com/star031104/ai-life/main/get.ps1 | iex
 - 代码只有一份：`ailife/` 是有希，`aigroup/` 是群里的她——QQ 群和微信群共用同一个大脑，差别只在接收和发送的那一层（`aigroup/qq`、`aigroup/wechat`）。
 - 入口只有一个：`python run.py yuki | qq | wechat`。
 - 三个角色各有一个“家”：`home/yuki`、`home/qq`、`home/wechat`，里面是她自己的配置、密钥、数据库、NapCat 和私人人设，都不进 git。代码更新只换代码，家里的东西不动；有希的小屋里点“更新”，换完以后另外两个也会自己重启用上新代码。
-- Windows 上双击 `start.vbs` 就把配好的几个全部在后台启动，每个角色一个托盘图标（粉色 L、绿色 G、微信绿 W）；以前装过三个文件夹的，跑一次 `scripts/migrate_old.py` 就把配置和数据搬进新的家。服务器上也是一份代码、一个 Python 环境、三个 systemd 服务。
+- Windows 上双击 `start.vbs` 就把配好的几个全部在后台启动，每个角色一个托盘图标（粉色 L、绿色 G、微信绿 W）。QQ 群、微信群的她都可以同时待在好几个群里，小屋里每个群有自己的卡片、聊天记录和单独的开关。服务器上也是一份代码、一个 Python 环境、三个 systemd 服务。
 
 **拿真实群聊改一轮。** 微信群版刚接进两个真实的朋友群，第一个早上就暴露了一串问题。我把聊天记录拉出来逐条看，发现毛病大多不在“说得像不像人”，而在“做事像不像一个刚进群的人”：
 
