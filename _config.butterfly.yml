@@ -228,7 +228,7 @@ post_edit:
   enable: true
   # url: https://github.com/user-name/repo-name/edit/branch-name/subdirectory-name/
   # For example: https://github.com/jerryc127/butterfly.js.org/edit/main/source/
-  url: https://github.com/star031104/star031104.github.io/edit/source/source/
+  url: https://github.com/star031104/star031104.github.io/edit/main/source/
 
 # Related Articles
 related_post:
